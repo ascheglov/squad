@@ -3,7 +3,9 @@
 
 You: <input id="you" type="text" /><br/>
 Target: <input id="target" type="text" /><br/>
-<div id="result"></div>
+<span id="result"></span>&nbsp;<button id="save">Save</button><br/>
+<hr/>
+<div id="history"></div>
 
 <script>
 'use strict';
@@ -11,6 +13,8 @@ Target: <input id="target" type="text" /><br/>
 let $you = document.getElementById('you');
 let $target = document.getElementById('target');
 let $result = document.getElementById('result');
+let $history = document.getElementById('history');
+let $save = document.getElementById('save');
 
 function point(str) {
   const [_, x_letter, y_number, keypads_str] = str.toUpperCase().match(/([A-Z])(\d+)(.*)/);
@@ -62,6 +66,21 @@ function update() {
 
 $you.oninput = update;
 $target.oninput = update;
+
+$save.onclick = function() {
+  let you = $you.value;
+  let target = $target.value;
+  let row = document.createElement("div");
+  row.onclick = function() {
+    $you.value = you;
+    $target.value = target;
+    update();
+  }
+  row.ondblclick = function() { row.remove(); }
+  row.innerHTML = you + ' &rarr; ' + target + ' : ' + $result.innerHTML;
+  $history.appendChild(row);
+}
+
 update();
 </script>
 
