@@ -1,0 +1,105 @@
+<title>Squad distance calculator</title>
+<meta charset="UTF-8">
+
+You: <input id="you" type="text" /><br/>
+Target: <input id="target" type="text" /><br/>
+<div id="result"></div>
+
+<script>
+'use strict';
+
+let $you = document.getElementById('you');
+let $target = document.getElementById('target');
+let $result = document.getElementById('result');
+
+function point(str) {
+  const [_, x_letter, y_number, keypads_str] = str.toUpperCase().match(/([A-Z])(\d+)(.*)/);
+  let grid = 300;
+  let x = (x_letter.charCodeAt(0) - 'A'.charCodeAt(0) + 0.5) * grid;
+  let y = (y_number - 0.5) * grid;
+
+  for (let kp of keypads_str.replace(/[^0-9]+/g, '')) {
+    grid /= 3;
+    //    0  1  2  3  4  5  6  7  8  9
+    x += [0,-1, 0, 1,-1, 0, 1,-1, 0, 1][kp] * grid;
+    y += [0, 1, 1, 1, 0, 0, 0,-1,-1,-1][kp] * grid;
+  }
+
+  return [x, y];
+}
+
+function calc(src_str, dst_str) {
+  const [x0, y0] = point(src_str);
+  const [x1, y1] = point(dst_str);
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const dist = Math.round(Math.hypot(dx, dy));
+  const dir = Math.round(Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+  return [dist, dir];
+}
+
+function r2mil(r) {
+  if (r <= 50 || r >= 1250) return 0;
+  //           50    100   150   200   250   300   350   400   450
+  const mil = [1579, 1558, 1538, 1517, 1496, 1475, 1453, 1431, 1409, 1387, 1364, 1341, 1317, 1292, 1267, 1240, 1212, 1183, 1152, 1118, 1081, 1039, 988, 918, 800];
+  const i_frac = r / 50 - 1;
+  const i = Math.floor(i_frac);
+  const [a, b] = mil.slice(i);
+  const k = i_frac - i;
+  return Math.round(a - (a - b) * k);
+}
+
+function update() {
+  try {
+    const [dist, dir] = calc($you.value, $target.value)
+    const mil = r2mil(dist);
+    $result.innerHTML = `${dir}&deg;, ${dist}m (${mil}mil)`;
+  } catch (e) {
+    console.log(e);
+    $result.innerHTML = 'Use "a1 237" for A1-KP2-3 top-left';
+  }
+}
+
+$you.oninput = update;
+$target.oninput = update;
+update();
+</script>
+
+<script>
+// Tests.
+function assert_eq(a, b, context) {
+  console.assert(JSON.stringify(a) == JSON.stringify(b), `${context}:`, a, '!=', b);
+}
+assert_eq([2, 3], [4, 5], "must fail");
+
+function test_point(str, x, y) {
+  assert_eq(point(str).map(Math.round), [x, y], str);
+}
+test_point('a1', 150, 150);
+test_point('a1 5', 150, 150);
+test_point('a1 9', 250, 50);
+test_point('a1 7', 50, 50);
+test_point('a1 75', 50, 50);
+test_point('a1 79', 83, 17);
+test_point('a1 77', 17, 17);
+test_point('a1 777', 6, 6);
+
+function test_calc(src, dst, dist, dir) {
+  assert_eq(calc(src, dst), [dist, dir], `${src} -> ${dst}`);
+}
+test_calc('a1', 'a1 7', 141, 315);
+test_calc('a1', 'a1 8', 100, 0);
+test_calc('a1', 'a1 9', 141, 45);
+test_calc('a1', 'a1 6', 100, 90);
+test_calc('a1', 'a1 4', 100, 270);
+test_calc('a2', 'b1',   424, 45);
+
+function test_r2mil(dist, mil) {
+  assert_eq(r2mil(dist), mil, `${dist}m :`);
+}
+test_r2mil(300, 1475);
+test_r2mil(350, 1453);
+test_r2mil(425, 1420);
+test_r2mil(60, 1575);
+</script>
+
