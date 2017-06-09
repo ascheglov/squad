@@ -54,11 +54,18 @@ function r2mil(r) {
   return Math.round(a - (a - b) * k);
 }
 
+function r2clicks(r) {
+  const dists = [30, 115, 200, 257.5, 292.5, 320, 365, 412.5, 462.5, 515, 550, 572.5, 607.5, 640, 665, 690, 720, 742.5, 760, 795, 9000];
+  if (r <= 60 || r >= 815) return 0;
+  return dists.findIndex(function(d) { return r < d; });
+}
+
 function update() {
   try {
     const [dist, dir] = calc($you.value, $target.value)
     const mil = r2mil(dist);
-    $result.innerHTML = `${dir}&deg;, ${dist}m (${mil}mil)`;
+    const ws = r2clicks(dist);
+    $result.innerHTML = `${dir}&deg;, ${dist}m (${mil}mil, ${ws}*W)`;
   } catch (e) {
     console.log(e);
     $result.innerHTML = 'Use "a1 237" for A1-KP2-3 top-left';
@@ -121,5 +128,12 @@ test_r2mil(300, 1475);
 test_r2mil(350, 1453);
 test_r2mil(425, 1420);
 test_r2mil(60, 1575);
+
+function test_r2clicks(dist, clicks) {
+  assert_eq(r2clicks(dist), clicks, `${dist}m :`);
+}
+test_r2clicks(500, 9);
+test_r2clicks(800, 20);
+test_r2clicks(50, 0);
 </script>
 
