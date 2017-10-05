@@ -12,6 +12,13 @@ input { background-color: #fff; border: 1px solid black; }
 nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 #map { z-index: 1; }
 .mark { z-index: 200; position: absolute; }
+#fob-pos {
+  background-image: url("fob.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex; align-items: center; justify-content: center;
+}
+#fob-pos, #fob-inner { border: 2px dashed blue; border-radius: 50%; }
 </style>
 
 <nav>
@@ -31,6 +38,7 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   <span>
     <input type="radio" name="mark" value="target" id="m-target" checked><label for="m-target"><img src="target.png"></label>
     <input type="radio" name="mark" value="mortar" id="m-mortar"><label for="m-mortar"><img src="mortar.png"></label>
+    <input type="radio" name="mark" value="fob" id="m-fob"><label for="m-fob"><img src="fob.png"></label>
   </span>
   <br/>
   You: <input id="you" type="text" /><br/>
@@ -47,6 +55,10 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 <img class="mark" id="target-pos" src="target.png">
 <img class="mark" id="your-pos" src="mortar.png">
 
+<div class="mark" id="fob-pos">
+  <div id="fob-inner"></div>
+</div>
+
 <script>
 'use strict';
 
@@ -62,6 +74,10 @@ let $map_name = document.getElementById('map-name');
 let $target_pos = document.getElementById('target-pos');
 let $your_pos = document.getElementById('your-pos');
 let $m_target = document.getElementById('m-target');
+
+let $fob_pos = document.getElementById('fob-pos');
+let $fob_inner = document.getElementById('fob-inner');
+let $m_fob = document.getElementById('m-fob');
 
 function getMapSize(name)
 {
@@ -154,8 +170,9 @@ function r2clicks(r) {
 }
 
 function moveMarker(el, x, y) {
-  el.style.left = (x - el.width / 2) + "px";
-  el.style.top = (y - el.height / 2) + "px";
+  const rc = el.getBoundingClientRect();
+  el.style.left = (x - rc.width / 2) + "px";
+  el.style.top = (y - rc.height / 2) + "px";
 }
 
 function setMarker(what, pos) {
@@ -210,6 +227,18 @@ $save.onclick = function() {
 
 updateFromText();
 
+function resizeCircle(elem, r_meters) {
+  const d = scale(r_meters * 2, g_map_cx, $map.width);
+  elem.style.width = d + 'px';
+  elem.style.height = d + 'px';
+}
+
+
+function setFobScale() {
+  resizeCircle($fob_pos, 400);
+  resizeCircle($fob_inner, 150);
+}
+
 const bright_maps = new Set(['chora', 'fools-road', 'kohat-toi']);
 function changeMap() {
   const name = $map_name.value;
@@ -217,11 +246,17 @@ function changeMap() {
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
   [g_map_cx, g_map_cy] = getMapSize(name);
+  setFobScale();
 }
 $map_name.onchange = changeMap;
 changeMap();
 
 function updateFromClick(e) {
+  if ($m_fob.checked) {
+    moveMarker($fob_pos, e.pageX, e.pageY);
+    return;
+  }
+
   let elem = $m_target.checked ? $target_pos : $your_pos;
   moveMarker(elem, e.pageX, e.pageY);
   const [x0, y0] = elem2point($your_pos);
@@ -234,6 +269,7 @@ function updateFromClick(e) {
 $map.onclick = updateFromClick;
 $your_pos.onclick = updateFromClick;
 $target_pos.onclick = updateFromClick;
+$fob_pos.onclick = updateFromClick;
 
 document.onkeydown = function(e) {
   if (e.which == 27) {
