@@ -16,9 +16,11 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   background-image: url("fob.png");
   background-repeat: no-repeat;
   background-position: center;
+}
+#fob-pos, #fob-inner, #fob-inner2 {
+  border: 2px dashed blue; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
 }
-#fob-pos, #fob-inner { border: 2px dashed blue; border-radius: 50%; }
 </style>
 
 <nav>
@@ -56,7 +58,9 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 <img class="mark" id="your-pos" src="mortar.png">
 
 <div class="mark" id="fob-pos">
-  <div id="fob-inner"></div>
+  <div id="fob-inner">
+    <div id="fob-inner2"></div>
+  </div>
 </div>
 
 <script>
@@ -77,12 +81,12 @@ let $m_target = document.getElementById('m-target');
 
 let $fob_pos = document.getElementById('fob-pos');
 let $fob_inner = document.getElementById('fob-inner');
+let $fob_inner2 = document.getElementById('fob-inner2');
 let $m_fob = document.getElementById('m-fob');
 
-function getMapSize(name)
-{
-  switch (name)
-  {
+function getMapSize() {
+  const name = $map_name.value;
+  switch (name) {
     case "al-basrah":     return [3200, 3200];
     case "chora":         return [4066, 4066];
     case "fools-road":    return [1733, 1777];
@@ -98,17 +102,16 @@ function getMapSize(name)
   }
 }
 
-var [g_map_cx, g_map_cy] = getMapSize('');
-
 function scale(x, cx_old, cx_new) {
   return (x / cx_old) * cx_new;
 }
 
 function elem2point(elem) {
+  const [map_cx, map_cy] = getMapSize();
   const map = $map.getBoundingClientRect();
   const rc = elem.getBoundingClientRect();
-  const x = scale(rc.left + rc.width / 2 - map.left, map.width, g_map_cx);
-  const y = scale(rc.top + rc.height / 2 - map.top, map.height, g_map_cy);
+  const x = scale(rc.left + rc.width / 2 - map.left, map.width, map_cx);
+  const y = scale(rc.top + rc.height / 2 - map.top, map.height, map_cy);
   return [x, y];
 }
 
@@ -177,9 +180,10 @@ function moveMarker(el, x, y) {
 
 function setMarker(what, pos) {
   try {
+    const [map_cx, map_cy] = getMapSize();
     let [x, y] = point(pos);
-    x = scale(x, g_map_cx, map.width);
-    y = scale(y, g_map_cy, map.height);
+    x = scale(x, map_cx, map.width);
+    y = scale(y, map_cy, map.height);
     moveMarker(what, x, y);
   } catch (_) {}
 }
@@ -208,10 +212,7 @@ function updateFromText() {
   setMarker($target_pos, $target.value);
 }
 
-$you.oninput = updateFromText;
-$target.oninput = updateFromText;
-
-$save.onclick = function() {
+function saveCoords() {
   let you = $you.value;
   let target = $target.value;
   let row = document.createElement("div");
@@ -225,18 +226,17 @@ $save.onclick = function() {
   $history.appendChild(row);
 }
 
-updateFromText();
-
 function resizeCircle(elem, r_meters) {
-  const d = scale(r_meters * 2, g_map_cx, $map.width);
+  const [map_cx, map_cy] = getMapSize();
+  const d = scale(r_meters * 2, map_cx, $map.width);
   elem.style.width = d + 'px';
   elem.style.height = d + 'px';
 }
 
-
 function setFobScale() {
   resizeCircle($fob_pos, 400);
   resizeCircle($fob_inner, 150);
+  resizeCircle($fob_inner2, 75);
 }
 
 const bright_maps = new Set(['chora', 'fools-road', 'kohat-toi']);
@@ -245,11 +245,8 @@ function changeMap() {
   $map.src = "maps/" + name + ".jpg";
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
-  [g_map_cx, g_map_cy] = getMapSize(name);
   setFobScale();
 }
-$map_name.onchange = changeMap;
-changeMap();
 
 function updateFromClick(e) {
   if ($m_fob.checked) {
@@ -266,20 +263,31 @@ function updateFromClick(e) {
   updateImpl(x0, y0, x1, y1);
 }
 
+function nextMarkType() {
+  let b = document.querySelector('input[name="mark"]:checked');
+  let n = b.nextElementSibling.nextElementSibling;
+  if (!n) n = b.parentElement.firstElementChild;
+  n.checked = true;
+}
+
+$map_name.onchange = changeMap;
+
+document.onkeydown = function(e) {
+  if (e.which == 27) nextMarkType();
+}
+
 $map.onclick = updateFromClick;
 $your_pos.onclick = updateFromClick;
 $target_pos.onclick = updateFromClick;
 $fob_pos.onclick = updateFromClick;
 
-document.onkeydown = function(e) {
-  if (e.which == 27) {
-    let b = document.querySelector('input[name="mark"]:checked');
-    let n = b.nextElementSibling.nextElementSibling;
-    if (!n) n = b.parentElement.firstElementChild;
-    n.checked = true;    
-  }
-}
+$you.oninput = updateFromText;
+$target.oninput = updateFromText;
 
+$save.onclick = saveCoords;
+
+changeMap();
+updateFromText();
 </script>
 
 <script>
