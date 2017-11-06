@@ -163,9 +163,10 @@ function saveCoords() {
 const bright_maps = new Set(['chora', 'fools-road', 'kohat-toi']);
 function changeMap() {
   const name = $map_name.value;
-  $map.src = "maps/" + name + ".jpg";
+  $map.src = "maps/" + name + ".png";
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
+  [$map.width, $map.height] = getMapSize();
 }
 
 function updateFromClick(e) {
