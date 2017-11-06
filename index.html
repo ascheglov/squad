@@ -18,6 +18,7 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   background-position: center;
 }
 #fob-pos, #fob-inner, #fob-inner2 {
+  z-index: 2;
   border: 2px dashed blue; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
 }
@@ -57,9 +58,9 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 <img class="mark" id="target-pos" src="target.png">
 <img class="mark" id="your-pos" src="mortar.png">
 
-<div class="mark" id="fob-pos">
-  <div id="fob-inner">
-    <div id="fob-inner2"></div>
+<div class="mark" id="fob-pos" style="width: 800px; height: 800px">
+  <div id="fob-inner" style="width: 300px; height: 300px">
+    <div id="fob-inner2" style="width: 150px; height: 150px"></div>
   </div>
 </div>
 

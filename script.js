@@ -160,26 +160,12 @@ function saveCoords() {
   $history.appendChild(row);
 }
 
-function resizeCircle(elem, r_meters) {
-  const [map_cx, map_cy] = getMapSize();
-  const d = scale(r_meters * 2, map_cx, $map.width);
-  elem.style.width = d + 'px';
-  elem.style.height = d + 'px';
-}
-
-function setFobScale() {
-  resizeCircle($fob_pos, 400);
-  resizeCircle($fob_inner, 150);
-  resizeCircle($fob_inner2, 75);
-}
-
 const bright_maps = new Set(['chora', 'fools-road', 'kohat-toi']);
 function changeMap() {
   const name = $map_name.value;
   $map.src = "maps/" + name + ".jpg";
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
-  setFobScale();
 }
 
 function updateFromClick(e) {
