@@ -16,7 +16,9 @@ test_point('a1 77', 17, 17);
 test_point('a1 777', 6, 6);
 
 function test_calc(src, dst, dist, dir) {
-  assert_eq(calc(src, dst), [dist, dir], `${src} -> ${dst}`);
+  const [x0, y0] = point(src);
+  const [x1, y1] = point(dst);
+  assert_eq(calc(x0, y0, x1, y1), [dist, dir], `${src} -> ${dst}`);
 }
 test_calc('a1', 'a1 7', 141, 315);
 test_calc('a1', 'a1 8', 100, 0);
