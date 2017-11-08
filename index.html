@@ -4,70 +4,328 @@
   Belongs to public domain
 -->
 
-<title>Squad distance calculator</title>
-<meta charset="UTF-8">
 <style>
 body { margin: 0; }
-input { background-color: #fff; border: 1px solid black; }
 nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
-#map { display: none; }
-#canvas { z-index: 1; }
-.mark { z-index: 200; position: absolute; }
-#fob-pos {
-  background-image: url("fob.png");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-#fob-pos, #fob-inner, #fob-inner2 {
-  z-index: 2;
-  border: 2px dashed blue; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
 </style>
 
 <nav>
   <select id="map-name">
-    <option value="albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
-    <option value="Chora1_Minimap.jpg" m-width="4066" m-height="4066">Chora</option>
-    <option value="Fools_Road_v1_Minimap.jpg" m-width="1733" m-height="1777">Fool's Road</option>
-    <option value="gorodok_minimap.jpg" m-width="4333" m-height="4333">Gorodok</option>
-    <option value="kohat_minimap.jpg" m-width="4017" m-height="4017">Kohat Toi</option>
-    <option value="kokan_minimap.jpg" m-width="2500" m-height="2500">Kokan</option>
-    <option value="logarvalley_minimap.jpg" m-width="1766" m-height="1766">Logar Valley</option>
-    <option value="Mestia_Minimap1.jpg" m-width="3200" m-height="3200">Mestia</option>
-    <option value="Narva_Minimap.jpg" m-width="2200" m-height="2200">Narva</option>
-    <option value="forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
-    <option value="sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
-    <option value="yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
+    <option value="al-basrah">Al Basrah</option>
+    <option value="chora">Chora</option>
+    <option value="fools-road">Fool's Road</option>
+    <option value="gorodok">Gorodok</option>
+    <option value="kohat-toi">Kohat Toi</option>
+    <option value="kokan">Kokan</option>
+    <option value="logar-valley">Logar Valley</option>
+    <option value="narva">Narva</option>
+    <option value="op-first-light">OP First Light</option>
+    <option value="sumari-bala">Sumari Bala</option>
+    <option value="yehorivka">Yehorivka</option>
   </select>
-  <span>
-    <input type="radio" name="mark" value="target" id="m-target" checked><label for="m-target"><img src="target.png"></label>
-    <input type="radio" name="mark" value="mortar" id="m-mortar"><label for="m-mortar"><img src="mortar.png"></label>
-    <input type="radio" name="mark" value="fob" id="m-fob"><label for="m-fob"><img src="fob.png"></label>
-  </span>
-  <br/>
-  You: <input id="you" type="text" /><br/>
-  Target: <input id="target" type="text" /><br/>
-  <div id="dbg"></div>
-  <span id="result"></span>&nbsp;<button id="save">Save</button><br/>
-  Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.
-  <hr/>
-  <div id="history"></div>
+  <span id="dbg"></span>
 </nav>
 
-<canvas id="canvas" width="4500" height="4500"></canvas>
+<canvas id="canvas" width="680" height="580"></canvas>
 
-<img id="map" src="fob.png"/>
+<img id="map" src="//nabla.ujkl.ru/squad/maps/sumari-bala.png" style="display:none" />
+<img id="target" src="//nabla.ujkl.ru/squad/target.png" style="display:none" />
+<img id="mortar" src="//nabla.ujkl.ru/squad/mortar.png" style="display:none" />
 
-<img class="mark" id="target-pos" src="target.png">
-<img class="mark" id="your-pos" src="mortar.png">
 
-<div class="mark" id="fob-pos" style="width: 800px; height: 800px">
-  <div id="fob-inner" style="width: 300px; height: 300px">
-    <div id="fob-inner2" style="width: 150px; height: 150px"></div>
-  </div>
-</div>
+<script>
+  'use strict';
+  
+  const kMaxRocketRange = 815;
+  const kMaxMortarRange = 1250;
 
-<script src="calc.js"></script>
-<script src="script.js"></script>
-<script src="tests.js"></script>
+  function coords2kp(x, y, size) {
+    x = Math.floor(x / size) % 3;
+    y = Math.floor(y / size) % 3;
+    return 1 + x + 3 * (2 - y);
+  }
+
+  function coords2str(x, y) {
+    const letter = String.fromCharCode('A'.charCodeAt(0) + Math.floor(x / 300));
+    const number = Math.floor(y / 300) + 1;
+    const kp1 = coords2kp(x, y, 100);
+    const kp2 = coords2kp(x, y, 100 / 3);
+    return `${letter}${number}-${kp1}-${kp2}`;
+  }
+
+  function calc(x0, y0, x1, y1) {
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    const dist = Math.round(Math.hypot(dx, dy));
+    const dir = Math.round(Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+    return [dist, dir];
+  }
+
+  function r2mil(r) {
+    if (r <= 50 || r >= kMaxMortarRange) return 0;
+    //           50    100   150   200   250   300   350   400   450
+    const mil = [1579, 1558, 1538, 1517, 1496, 1475, 1453, 1431, 1409, 1387, 1364, 1341, 1317, 1292, 1267, 1240, 1212, 1183, 1152, 1118, 1081, 1039, 988, 918, 800];
+    const i_frac = r / 50 - 1;
+    const i = Math.floor(i_frac);
+    const [a, b] = mil.slice(i);
+    const k = i_frac - i;
+    return Math.round(a - (a - b) * k);
+  }
+
+  function r2clicks(r) {
+    const dists = [30, 115, 200, 257.5, 292.5, 320, 365, 412.5, 462.5, 515, 550, 572.5, 607.5, 640, 665, 690, 720, 742.5, 760, 795, 9000];
+    if (r <= 60 || r >= kMaxRocketRange) return 0;
+    return dists.findIndex(function(d) { return r < d; });
+  }
+</script>
+
+<script>
+  'use strict';
+
+  let $dbg = document.getElementById('dbg');
+
+  let $canvas = document.getElementById('canvas');
+  let g_ctx = $canvas.getContext('2d');
+  let $map = document.getElementById('map');
+
+  let $target_pos = document.getElementById('target');
+  let $mortar = document.getElementById('mortar');
+
+  let [tx, ty] = [100, 200];
+  let [tcx, tcy] = [21, 21];
+
+  let [ax, ay] = [200, 300];
+  let [acx, acy] = [21, 21];
+
+  let [mx, my] = [0, 0];
+  let scale = 1;
+
+  $map.onload = drawAll;
+
+  let frame = 0;
+
+  function map2canvas(x, y) {
+    return [(x - mx) * scale, (y - my) * scale];
+  }
+
+  function canvas2map(x, y) {
+    return [x / scale + mx, y / scale + my].map(Math.round);
+  }
+
+  function moveMap(dx, dy) {
+    [mx, my] = [mx + dx, my + dy].map(Math.round);
+  }
+
+  function moveTarget(dx, dy) {
+    [tx, ty] = [tx + dx, ty + dy].map(Math.round);
+  }
+
+  function moveArty(dx, dy) {
+    [ax, ay] = [ax + dx, ay + dy].map(Math.round);
+  }
+
+  function line(x0, y0, x1, y1) {
+    g_ctx.beginPath();
+    g_ctx.moveTo(x0, y0);
+    g_ctx.lineTo(x1, y1);
+    g_ctx.stroke();
+  }
+
+  function drawGrid() {
+    g_ctx.strokeStyle = 'black';
+    let len = Math.max($canvas.width, $canvas.height);
+    let [gx, gy] = [Math.floor(mx/300)*300, Math.floor(my/300)*300];
+    for (;;) {
+      g_ctx.lineWidth = (gx % 3 == 0) ? 3 : 1;
+      let [x, y] = map2canvas(gx, gy);
+      line(x, 0, x, len);
+      line(0, y, len, y);
+      gx+=100; gy+=100;
+      if (x > len) break;
+    }
+  }
+
+  function drawText(str, x, y) {
+    g_ctx.lineWidth = 4;
+    g_ctx.strokeText(str, x, y);
+    g_ctx.fillText(str, x, y);
+  }
+  
+  function drawTgt() {
+    const [dist, dir] = calc(ax, ay, tx, ty);
+    const mil = r2mil(dist);
+    const ws = r2clicks(dist);
+
+    let [x, y] = map2canvas(tx, ty);
+    g_ctx.drawImage($target_pos, x-tcx/2, y-tcy/2);
+
+    g_ctx.strokeStyle = '#fff';
+    g_ctx.fillStyle = '#f00';
+    g_ctx.font = '18px sans-serif';
+    g_ctx.textBaseline = 'bottom';
+    drawText(`${dir}\u00B0 ${dist}m`, x+tcx/2, y);
+    g_ctx.textBaseline = 'top';
+    drawText(`${mil}mil, ${ws}w`, x+tcx/2, y);
+  }
+
+  function drawArtyCircle() {
+    let [x, y] = map2canvas(ax, ay);
+    g_ctx.strokeStyle = '#0f0';
+    g_ctx.lineWidth = 1;
+    g_ctx.beginPath();
+    g_ctx.arc(x, y, kMaxRocketRange * scale, 0, 2 * Math.PI);
+    g_ctx.stroke();
+    g_ctx.beginPath();
+    g_ctx.arc(x, y, kMaxMortarRange * scale, 0, 2 * Math.PI);
+    g_ctx.stroke();
+  }
+
+  function drawArty() {
+    let [x, y] = map2canvas(ax, ay);
+    g_ctx.drawImage($mortar, x-acx/2, y-acy/2);
+  }
+
+  function drawMap() {
+    let [cx, cy] = getMapSize();
+    let [sx, sy] = [$map.width / cx, $map.height / cy];
+    let [scx, scy] = [$canvas.width, $canvas.height];
+    let [ocx, ocy] = [scx/scale, scy/scale];
+    g_ctx.drawImage($map, mx*sx, my*sy, ocx*sx, ocy*sy, 0, 0, scx, scy);
+  }
+
+  function drawDbg() {
+    frame++;
+    g_ctx.strokeStyle = '#fff';
+    g_ctx.fillStyle = '#000';
+    g_ctx.font = '25px sans-serif';
+    g_ctx.textBaseline = 'bottom';
+    drawText(`${frame} | ${mx} ${my} | ${Math.round(scale*100)}%`, 0, $canvas.height);
+  }
+  
+  function drawAll() {
+    let [scx, scy] = [$canvas.width, $canvas.height];
+    g_ctx.fillStyle='#aaa';
+    g_ctx.fillRect(0, 0, scx, scy);
+
+    drawMap();
+
+    drawGrid();
+
+    drawArtyCircle();
+
+    drawTgt();
+
+    drawArty();
+
+    drawDbg();
+  }
+
+  function event2point_screen(e) {
+    const rc = $canvas.getBoundingClientRect();
+    return [e.clientX - rc.left, e.clientY - rc.top];
+  }
+
+  function event2point(e) {
+    const [ex, ey] = event2point_screen(e);
+    return canvas2map(ex, ey);
+  }
+
+  function inCircle(x, y, x0, y0, r) {
+    return Math.hypot(x - x0, y - y0) < r;
+  }
+
+  let movingArty = false;
+  let movingTgt = false;
+  let movingMap = false;
+
+  $canvas.onmousedown = function(e) {
+    let [ex, ey] = event2point_screen(e);
+    let [x,y] = canvas2map(ex, ey);
+
+    let [tsx, tsy] = map2canvas(tx, ty);
+    movingTgt = inCircle(ex, ey, tsx, tsy, 15);
+    if (movingTgt) return;
+
+    let [asx, asy] = map2canvas(ax, ay);
+    movingArty = inCircle(ex, ey, asx, asy, 15);
+    if (movingArty) return;
+
+    movingMap = true;
+  }
+
+  function resetMove() {
+    movingArty = false;
+    movingTgt = false;
+    movingMap = false;
+  }
+  $canvas.onmouseup = resetMove;
+  $canvas.onmouseleave = resetMove;
+
+  let [oldX, oldY] = [0, 0];
+  $canvas.onmousemove = function(e) {
+    let [x,y] = event2point(e);
+    $dbg.innerText = coords2str(x, y);
+    let [dx, dy] = [(e.clientX - oldX) / scale, (e.clientY - oldY) / scale];
+    [oldX, oldY] = [e.clientX, e.clientY];
+    if (movingTgt) {
+      moveTarget(dx, dy);
+      drawAll();
+    } if (movingArty) {
+      moveArty(dx, dy);
+      drawAll();
+    } if (movingMap) {
+      moveMap(-dx, -dy);
+      drawAll();
+    }
+  }
+  $canvas.onwheel = function(e) {
+    let oldScale = scale;
+    let zoomOut = e.deltaY > 0;
+    let delta = scale < 1 ? 0.1 : scale < 2 ? 0.2 : 0.5;
+    if (zoomOut) {
+      scale = Math.max(0.2, scale - delta);
+    } else {
+      scale = Math.min(4, scale + delta);
+    }
+
+    let [ex, ey] = event2point_screen(e);
+    let k = 1/oldScale - 1/scale;
+    moveMap(ex * k, ey * k)
+
+    drawAll();
+  }
+
+  let $map_name = document.getElementById('map-name');
+  function changeMap() {
+    const name = $map_name.value;
+    $map.src = "//nabla.ujkl.ru/squad/maps/" + name + ".png";
+  }
+  $map_name.onchange = changeMap;
+  changeMap();
+
+  function getMapSize() {
+    const name = $map_name.value;
+    switch (name) {
+      case "al-basrah":     return [3200, 3200];
+      case "chora":         return [4066, 4066];
+      case "fools-road":    return [1733, 1777];
+      case "gorodok":       return [4333, 4333];
+      case "kohat-toi":     return [4017, 4017];
+      case "kokan":         return [2500, 2500];
+      case "logar-valley":  return [1766, 1766];
+      case "narva":         return [2200, 2200];
+      case "op-first-light":return [1200, 1200];
+      case "sumari-bala":   return [1300, 1300];
+      case "yehorivka":     return [4033, 4033];
+      default:              return [3200, 3200];
+    }
+  }
+
+  function onResize() {
+    $canvas.width = window.innerWidth; 
+    $canvas.height = window.innerHeight;
+    drawAll();
+  }
+  window.addEventListener('resize', onResize, false);
+  onResize();
+</script>
