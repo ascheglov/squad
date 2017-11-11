@@ -4,6 +4,9 @@
   Belongs to public domain
 -->
 
+<title>Squad distance calculator</title>
+<meta charset="UTF-8">
+
 <style>
 body { margin: 0; }
 nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
@@ -11,26 +14,27 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 
 <nav>
   <select id="map-name">
-    <option value="al-basrah">Al Basrah</option>
-    <option value="chora">Chora</option>
-    <option value="fools-road">Fool's Road</option>
-    <option value="gorodok">Gorodok</option>
-    <option value="kohat-toi">Kohat Toi</option>
-    <option value="kokan">Kokan</option>
-    <option value="logar-valley">Logar Valley</option>
-    <option value="narva">Narva</option>
-    <option value="op-first-light">OP First Light</option>
-    <option value="sumari-bala">Sumari Bala</option>
-    <option value="yehorivka">Yehorivka</option>
+    <option value="albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
+    <option value="Chora1_Minimap.jpg" m-width="4066" m-height="4066">Chora</option>
+    <option value="Fools_Road_v1_Minimap.jpg" m-width="1733" m-height="1777">Fool's Road</option>
+    <option value="gorodok_minimap.jpg" m-width="4333" m-height="4333">Gorodok</option>
+    <option value="kohat_minimap.jpg" m-width="4017" m-height="4017">Kohat Toi</option>
+    <option value="kokan_minimap.jpg" m-width="2500" m-height="2500">Kokan</option>
+    <option value="logarvalley_minimap.jpg" m-width="1766" m-height="1766">Logar Valley</option>
+    <option value="Mestia_Minimap1.jpg" m-width="3200" m-height="3200">Mestia</option>
+    <option value="Narva_Minimap.jpg" m-width="2200" m-height="2200">Narva</option>
+    <option value="forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
+    <option value="sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
+    <option value="yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
   </select>
   <span id="dbg"></span>
 </nav>
 
 <canvas id="canvas" width="680" height="580"></canvas>
 
-<img id="map" src="//nabla.ujkl.ru/squad/maps/sumari-bala.png" style="display:none" />
-<img id="target" src="//nabla.ujkl.ru/squad/target.png" style="display:none" />
-<img id="mortar" src="//nabla.ujkl.ru/squad/mortar.png" style="display:none" />
+<img id="map" src="fob.png" style="display:none" />
+<img id="target" src="target.png" style="display:none" />
+<img id="mortar" src="mortar.png" style="display:none" />
 
 
 <script>
@@ -81,6 +85,8 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 
 <script>
   'use strict';
+
+  const kMapImages = "//nabla.ujkl.ru/squad-maps/";
 
   let $dbg = document.getElementById('dbg');
 
@@ -186,7 +192,8 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   }
 
   function drawMap() {
-    let [cx, cy] = getMapSize();
+    const o = $map_name.querySelector('option:checked');
+    let [cx, cy] = [o.getAttribute('m-width'), o.getAttribute('m-height')];
     let [sx, sy] = [$map.width / cx, $map.height / cy];
     let [scx, scy] = [$canvas.width, $canvas.height];
     let [ocx, ocy] = [scx/scale, scy/scale];
@@ -298,28 +305,10 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   let $map_name = document.getElementById('map-name');
   function changeMap() {
     const name = $map_name.value;
-    $map.src = "//nabla.ujkl.ru/squad/maps/" + name + ".png";
+    $map.src = kMapImages + name;
   }
   $map_name.onchange = changeMap;
   changeMap();
-
-  function getMapSize() {
-    const name = $map_name.value;
-    switch (name) {
-      case "al-basrah":     return [3200, 3200];
-      case "chora":         return [4066, 4066];
-      case "fools-road":    return [1733, 1777];
-      case "gorodok":       return [4333, 4333];
-      case "kohat-toi":     return [4017, 4017];
-      case "kokan":         return [2500, 2500];
-      case "logar-valley":  return [1766, 1766];
-      case "narva":         return [2200, 2200];
-      case "op-first-light":return [1200, 1200];
-      case "sumari-bala":   return [1300, 1300];
-      case "yehorivka":     return [4033, 4033];
-      default:              return [3200, 3200];
-    }
-  }
 
   function onResize() {
     $canvas.width = window.innerWidth; 
