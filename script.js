@@ -1,5 +1,7 @@
 'use strict';
 
+const kMapImages = "//nabla.ujkl.ru/squad-maps/";
+
 let $canvas = document.getElementById('canvas');
 let g_ctx = $canvas.getContext('2d');
 
@@ -22,21 +24,8 @@ let $fob_inner2 = document.getElementById('fob-inner2');
 let $m_fob = document.getElementById('m-fob');
 
 function getMapSize() {
-  const name = $map_name.value;
-  switch (name) {
-    case "al-basrah":     return [3200, 3200];
-    case "chora":         return [4066, 4066];
-    case "fools-road":    return [1733, 1777];
-    case "gorodok":       return [4333, 4333];
-    case "kohat-toi":     return [4017, 4017];
-    case "kokan":         return [2500, 2500];
-    case "logar-valley":  return [1766, 1766];
-    case "narva":         return [2200, 2200];
-    case "op-first-light":return [1200, 1200];
-    case "sumari-bala":   return [1300, 1300];
-    case "yehorivka":     return [4033, 4033];
-    default:              return [3200, 3200];
-  }
+  const o = $map_name.querySelector('option:checked');
+  return [o.getAttribute('m-width'), o.getAttribute('m-height')];
 }
 
 function scale(x, cx_old, cx_new) {
@@ -106,7 +95,7 @@ function saveCoords() {
 const bright_maps = new Set(['chora', 'fools-road', 'kohat-toi']);
 function changeMap() {
   const name = $map_name.value;
-  $map.src = "maps/" + name + ".png";
+  $map.src = kMapImages + name;
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
 }
