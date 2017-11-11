@@ -1,5 +1,8 @@
 'use strict';
 
+let $canvas = document.getElementById('canvas');
+let g_ctx = $canvas.getContext('2d');
+
 let $you = document.getElementById('you');
 let $target = document.getElementById('target');
 let $result = document.getElementById('result');
@@ -41,11 +44,9 @@ function scale(x, cx_old, cx_new) {
 }
 
 function elem2point(elem) {
-  const [map_cx, map_cy] = getMapSize();
-  const map = $map.getBoundingClientRect();
   const rc = elem.getBoundingClientRect();
-  const x = scale(rc.left + rc.width / 2 - map.left, map.width, map_cx);
-  const y = scale(rc.top + rc.height / 2 - map.top, map.height, map_cy);
+  const x = rc.left + rc.width / 2;
+  const y = rc.top + rc.height / 2;
   return [x, y];
 }
 
@@ -66,7 +67,6 @@ function setMarker(what, pos) {
 }
 
 function updateImpl(x0, y0, x1, y1) {
-  $dbg.innerHTML = 'Coords: ' + [x0, y0, x1, y1].map(Math.round).join(', ');
   const dx = x1 - x0;
   const dy = y1 - y0;
   const dist = Math.round(Math.hypot(dx, dy));
@@ -109,7 +109,6 @@ function changeMap() {
   $map.src = "maps/" + name + ".png";
   const brightness = bright_maps.has(name) ? '200%' : '100%'
   $map.style.filter = "brightness(" + brightness + ")";
-  [$map.width, $map.height] = getMapSize();
 }
 
 function updateFromClick(e) {
@@ -134,13 +133,28 @@ function nextMarkType() {
   n.checked = true;
 }
 
+$map.onload = function() {
+  g_ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+  let [cx, cy] = getMapSize();
+  g_ctx.drawImage($map, 0, 0, cx, cy);
+  for (let i = 100; i < 4500; i += 100) {
+    g_ctx.beginPath();
+    g_ctx.lineWidth = (i % 3 == 0) ? 3 : 1;
+    g_ctx.moveTo(0, i);
+    g_ctx.lineTo(4500, i);
+    g_ctx.moveTo(i, 0);
+    g_ctx.lineTo(i, 4500);
+    g_ctx.stroke();
+  }
+}
+
 $map_name.onchange = changeMap;
 
 document.onkeydown = function(e) {
   if (e.which == 27) nextMarkType();
 }
 
-$map.onclick = updateFromClick;
+$canvas.onclick = updateFromClick;
 $your_pos.onclick = updateFromClick;
 $target_pos.onclick = updateFromClick;
 $fob_pos.onclick = updateFromClick;
@@ -152,3 +166,12 @@ $save.onclick = saveCoords;
 
 changeMap();
 updateFromText();
+
+function currentCoords(e) {
+  $dbg.innerHTML = 'Mouse: ' + coords2str(e.clientX, e.clientY);
+}
+
+$canvas.onmousemove = currentCoords;
+$your_pos.onmousemove = currentCoords;
+$target_pos.onmousemove = currentCoords;
+$fob_pos.onmousemove = currentCoords;

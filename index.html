@@ -10,7 +10,8 @@
 body { margin: 0; }
 input { background-color: #fff; border: 1px solid black; }
 nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
-#map { z-index: 1; }
+#map { display: none; }
+#canvas { z-index: 1; }
 .mark { z-index: 200; position: absolute; }
 #fob-pos {
   background-image: url("fob.png");
@@ -52,6 +53,8 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   <hr/>
   <div id="history"></div>
 </nav>
+
+<canvas id="canvas" width="4500" height="4500"></canvas>
 
 <img id="map" src="fob.png"/>
 
