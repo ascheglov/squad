@@ -1,5 +1,8 @@
 'use strict';
 
+const kMaxRocketRange = 815;
+const kMaxMortarRange = 1250;
+
 function coords2kp(x, y, size) {
   x = Math.floor(x / size) % 3;
   y = Math.floor(y / size) % 3;
@@ -40,7 +43,7 @@ function calc(x0, y0, x1, y1) {
 }
 
 function r2mil(r) {
-  if (r <= 50 || r >= 1250) return 0;
+  if (r <= 50 || r >= kMaxMortarRange) return 0;
   //           50    100   150   200   250   300   350   400   450
   const mil = [1579, 1558, 1538, 1517, 1496, 1475, 1453, 1431, 1409, 1387, 1364, 1341, 1317, 1292, 1267, 1240, 1212, 1183, 1152, 1118, 1081, 1039, 988, 918, 800];
   const i_frac = r / 50 - 1;
@@ -52,6 +55,6 @@ function r2mil(r) {
 
 function r2clicks(r) {
   const dists = [30, 115, 200, 257.5, 292.5, 320, 365, 412.5, 462.5, 515, 550, 572.5, 607.5, 640, 665, 690, 720, 742.5, 760, 795, 9000];
-  if (r <= 60 || r >= 815) return 0;
+  if (r <= 60 || r >= kMaxRocketRange) return 0;
   return dists.findIndex(function(d) { return r < d; });
 }
