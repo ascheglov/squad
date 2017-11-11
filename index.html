@@ -94,43 +94,123 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   let g_ctx = $canvas.getContext('2d');
   let $map = document.getElementById('map');
 
-  let $target_pos = document.getElementById('target');
-  let $mortar = document.getElementById('mortar');
+  let $target_img = document.getElementById('target');
+  let $mortar_img = document.getElementById('mortar');
 
-  let [tx, ty] = [100, 200];
-  let [tcx, tcy] = [21, 21];
+  let g_map = {
+    x: 0,
+    y: 0,
+    scale: 1,
+    map2canvas: function(x, y) {
+      return [(x - this.x) * this.scale, (y - this.y) * this.scale];
+    },
+    canvas2map: function(x, y) {
+      return [x / this.scale + this.x, y / this.scale + this.y].map(Math.round);
+    },
+    moveBy: function(dx, dy) {
+      [this.x, this.y] = [this.x + dx, this.y + dy].map(Math.round);
+    },
+    draw: function() {
+      const o = $map_name.querySelector('option:checked');
+      let [cx, cy] = [o.getAttribute('m-width'), o.getAttribute('m-height')];
+      let [sx, sy] = [$map.width / cx, $map.height / cy];
+      let [scx, scy] = [$canvas.width, $canvas.height];
+      let [ocx, ocy] = [scx/this.scale, scy/this.scale];
+      let [imgX, imgY] = [this.x * sx, this.y * sy];
+      g_ctx.drawImage($map, imgX, imgY, ocx*sx, ocy*sy, 0, 0, scx, scy);
+    },
+    offset: function() { return [this.x, this.y]; },
+    zoom: function(e, zoomOut) {
+      let oldScale = this.scale;
+      let delta = this.scale < 1 ? 0.1 : this.scale < 2 ? 0.2 : 0.5;
+      if (zoomOut) {
+        this.scale = Math.max(0.2, this.scale - delta);
+      } else {
+        this.scale = Math.min(4, this.scale + delta);
+      }
 
-  let [ax, ay] = [200, 300];
-  let [acx, acy] = [21, 21];
+      let [ex, ey] = event2point_screen(e);
+      let k = 1/oldScale - 1/this.scale;
+      this.moveBy(ex * k, ey * k);
+    },
+  };
 
-  let [mx, my] = [0, 0];
-  let scale = 1;
+  let g_mortar = {
+    x: 200,
+    y: 300,
+    size: 21,
+
+    moveBy: function(dx, dy) {
+      [this.x, this.y] = [this.x + dx, this.y + dy].map(Math.round);
+    },
+
+    toScreen: function() {
+      return g_map.map2canvas(this.x, this.y);
+    },
+
+    isMouseOver: function(ex, ey) {
+      let [sx, sy] = this.toScreen();
+      return inCircle(ex, ey, sx, sy, 15);
+    },
+
+    drawCircles: function() {
+      let [x, y] = this.toScreen();
+      g_ctx.strokeStyle = '#0f0';
+      g_ctx.lineWidth = 1;
+      g_ctx.beginPath();
+      g_ctx.arc(x, y, kMaxRocketRange * g_map.scale, 0, 2 * Math.PI);
+      g_ctx.stroke();
+      g_ctx.beginPath();
+      g_ctx.arc(x, y, kMaxMortarRange * g_map.scale, 0, 2 * Math.PI);
+      g_ctx.stroke();
+    },
+
+    draw: function() {
+      let [x, y] = this.toScreen();
+      g_ctx.drawImage($mortar_img, x - this.size/2, y - this.size/2);
+    },
+  };
+
+  let g_target = {
+    x: 100,
+    y: 200,
+    size: 21,
+
+    moveBy: function(dx, dy) {
+      [this.x, this.y] = [this.x + dx, this.y + dy].map(Math.round);
+    },
+
+    toScreen: function() {
+      return g_map.map2canvas(this.x, this.y);
+    },
+
+    isMouseOver: function(ex, ey) {
+      let [sx, sy] = this.toScreen();
+      return inCircle(ex, ey, sx, sy, 15);
+    },
+
+    draw: function(origin) {
+      let [x, y] = this.toScreen();
+      g_ctx.drawImage($target_img, x - this.size/2, y - this.size/2);
+
+      g_ctx.strokeStyle = '#fff';
+      g_ctx.fillStyle = '#f00';
+      g_ctx.font = '18px sans-serif';
+
+      let textX = x + this.size / 2;
+      const [dist, dir] = calc(origin.x, origin.y, this.x, this.y);
+      drawText(`${dir}\u00B0 ${dist}m`, textX, y, 'bottom');
+
+      const mil = r2mil(dist);
+      const ws = r2clicks(dist);
+      drawText(`${mil}mil ${ws}w`, textX, y, 'top');
+    }
+  };
+  
 
   $map.onload = drawAll;
 
-  let frame = 0;
-
-  function map2canvas(x, y) {
-    return [(x - mx) * scale, (y - my) * scale];
-  }
-
-  function canvas2map(x, y) {
-    return [x / scale + mx, y / scale + my].map(Math.round);
-  }
-
-  function moveMap(dx, dy) {
-    [mx, my] = [mx + dx, my + dy].map(Math.round);
-  }
-
-  function moveTarget(dx, dy) {
-    [tx, ty] = [tx + dx, ty + dy].map(Math.round);
-  }
-
-  function moveArty(dx, dy) {
-    [ax, ay] = [ax + dx, ay + dy].map(Math.round);
-  }
-
-  function line(x0, y0, x1, y1) {
+  function drawLine(x0, y0, x1, y1) {
     g_ctx.beginPath();
     g_ctx.moveTo(x0, y0);
     g_ctx.lineTo(x1, y1);
@@ -140,73 +220,33 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   function drawGrid() {
     g_ctx.strokeStyle = 'black';
     let len = Math.max($canvas.width, $canvas.height);
-    let [gx, gy] = [Math.floor(mx/300)*300, Math.floor(my/300)*300];
+    let [ofsX, ofsY] = g_map.offset();
+    let [gx, gy] = [Math.floor(ofsX/300)*300, Math.floor(ofsY/300)*300];
     for (;;) {
       g_ctx.lineWidth = (gx % 3 == 0) ? 3 : 1;
-      let [x, y] = map2canvas(gx, gy);
-      line(x, 0, x, len);
-      line(0, y, len, y);
+      let [x, y] = g_map.map2canvas(gx, gy);
+      drawLine(x, 0, x, len);
+      drawLine(0, y, len, y);
       gx+=100; gy+=100;
       if (x > len) break;
     }
   }
 
-  function drawText(str, x, y) {
+  function drawText(str, x, y, baseline) {
+    g_ctx.textBaseline = baseline;
     g_ctx.lineWidth = 4;
     g_ctx.strokeText(str, x, y);
     g_ctx.fillText(str, x, y);
   }
   
-  function drawTgt() {
-    const [dist, dir] = calc(ax, ay, tx, ty);
-    const mil = r2mil(dist);
-    const ws = r2clicks(dist);
-
-    let [x, y] = map2canvas(tx, ty);
-    g_ctx.drawImage($target_pos, x-tcx/2, y-tcy/2);
-
-    g_ctx.strokeStyle = '#fff';
-    g_ctx.fillStyle = '#f00';
-    g_ctx.font = '18px sans-serif';
-    g_ctx.textBaseline = 'bottom';
-    drawText(`${dir}\u00B0 ${dist}m`, x+tcx/2, y);
-    g_ctx.textBaseline = 'top';
-    drawText(`${mil}mil, ${ws}w`, x+tcx/2, y);
-  }
-
-  function drawArtyCircle() {
-    let [x, y] = map2canvas(ax, ay);
-    g_ctx.strokeStyle = '#0f0';
-    g_ctx.lineWidth = 1;
-    g_ctx.beginPath();
-    g_ctx.arc(x, y, kMaxRocketRange * scale, 0, 2 * Math.PI);
-    g_ctx.stroke();
-    g_ctx.beginPath();
-    g_ctx.arc(x, y, kMaxMortarRange * scale, 0, 2 * Math.PI);
-    g_ctx.stroke();
-  }
-
-  function drawArty() {
-    let [x, y] = map2canvas(ax, ay);
-    g_ctx.drawImage($mortar, x-acx/2, y-acy/2);
-  }
-
-  function drawMap() {
-    const o = $map_name.querySelector('option:checked');
-    let [cx, cy] = [o.getAttribute('m-width'), o.getAttribute('m-height')];
-    let [sx, sy] = [$map.width / cx, $map.height / cy];
-    let [scx, scy] = [$canvas.width, $canvas.height];
-    let [ocx, ocy] = [scx/scale, scy/scale];
-    g_ctx.drawImage($map, mx*sx, my*sy, ocx*sx, ocy*sy, 0, 0, scx, scy);
-  }
-
+  let g_frame = 0;
   function drawDbg() {
-    frame++;
+    g_frame++;
     g_ctx.strokeStyle = '#fff';
     g_ctx.fillStyle = '#000';
     g_ctx.font = '25px sans-serif';
-    g_ctx.textBaseline = 'bottom';
-    drawText(`${frame} | ${mx} ${my} | ${Math.round(scale*100)}%`, 0, $canvas.height);
+    let text = `${g_frame} | ${g_map.x} ${g_map.y} | ${Math.round(g_map.scale*100)}%`;
+    drawText(text, 0, $canvas.height, 'bottom');
   }
   
   function drawAll() {
@@ -214,15 +254,15 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
     g_ctx.fillStyle='#aaa';
     g_ctx.fillRect(0, 0, scx, scy);
 
-    drawMap();
+    g_map.draw();
 
     drawGrid();
 
-    drawArtyCircle();
+    g_mortar.drawCircles();
 
-    drawTgt();
+    g_target.draw(g_mortar);
 
-    drawArty();
+    g_mortar.draw();
 
     drawDbg();
   }
@@ -234,7 +274,7 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 
   function event2point(e) {
     const [ex, ey] = event2point_screen(e);
-    return canvas2map(ex, ey);
+    return g_map.canvas2map(ex, ey);
   }
 
   function inCircle(x, y, x0, y0, r) {
@@ -247,14 +287,12 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
 
   $canvas.onmousedown = function(e) {
     let [ex, ey] = event2point_screen(e);
-    let [x,y] = canvas2map(ex, ey);
+    let [x,y] = g_map.canvas2map(ex, ey);
 
-    let [tsx, tsy] = map2canvas(tx, ty);
-    movingTgt = inCircle(ex, ey, tsx, tsy, 15);
+    movingTgt = g_target.isMouseOver(ex, ey); 
     if (movingTgt) return;
 
-    let [asx, asy] = map2canvas(ax, ay);
-    movingArty = inCircle(ex, ey, asx, asy, 15);
+    movingArty = g_mortar.isMouseOver(ex, ey); 
     if (movingArty) return;
 
     movingMap = true;
@@ -272,33 +310,22 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   $canvas.onmousemove = function(e) {
     let [x,y] = event2point(e);
     $dbg.innerText = coords2str(x, y);
-    let [dx, dy] = [(e.clientX - oldX) / scale, (e.clientY - oldY) / scale];
+    let [dx, dy] = [(e.clientX - oldX) / g_map.scale, (e.clientY - oldY) / g_map.scale];
     [oldX, oldY] = [e.clientX, e.clientY];
     if (movingTgt) {
-      moveTarget(dx, dy);
+      g_target.moveBy(dx, dy);
       drawAll();
     } if (movingArty) {
-      moveArty(dx, dy);
+      g_mortar.moveBy(dx, dy);
       drawAll();
     } if (movingMap) {
-      moveMap(-dx, -dy);
+      g_map.moveBy(-dx, -dy);
       drawAll();
     }
   }
   $canvas.onwheel = function(e) {
-    let oldScale = scale;
     let zoomOut = e.deltaY > 0;
-    let delta = scale < 1 ? 0.1 : scale < 2 ? 0.2 : 0.5;
-    if (zoomOut) {
-      scale = Math.max(0.2, scale - delta);
-    } else {
-      scale = Math.min(4, scale + delta);
-    }
-
-    let [ex, ey] = event2point_screen(e);
-    let k = 1/oldScale - 1/scale;
-    moveMap(ex * k, ey * k)
-
+    g_map.zoom(e, zoomOut);
     drawAll();
   }
 
