@@ -9,10 +9,13 @@
 
 <style>
 body { margin: 0; }
-nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
+#top, #dbg { position: absolute; z-index: 9; background-color: #fed; }
+#dbg { bottom: 0; right: 0; padding: 3px 3px; min-width: 9em; }
+#help #help-text { display: none; padding: 5px 5px; }
+#help:hover #help-text { display: block; }
 </style>
 
-<nav>
+<div id="top">
   <select id="map-name">
     <option value="albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
     <option value="Chora1_Minimap.jpg" m-width="4066" m-height="4066">Chora</option>
@@ -27,14 +30,21 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
     <option value="sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
     <option value="yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
   </select>
-  <span id="dbg"></span>
-</nav>
+  <span id="help">
+    <button>?</button>
+    <div id="help-text">
+      <b>Squad distance calculator</b>
+      <hr/>
+      Drag mortar (<img id="mortar" src="mortar.png" />)
+      and target (<img id="target" src="target.png" />).<br/>
+      Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.
+    </div>
+  </span>
+</div>
+<div id="dbg"></div>
 
 <canvas id="canvas" width="680" height="580"></canvas>
-
 <img id="map" src="fob.png" style="display:none" />
-<img id="target" src="target.png" style="display:none" />
-<img id="mortar" src="mortar.png" style="display:none" />
 
 <script src="calc.js"></script>
 
@@ -194,8 +204,8 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   };
 
   let g_map = new Map();
-  let g_mortar = new Mortar(g_map, 200, 300);
-  let g_target = new Target(g_map, g_mortar, 100, 200);
+  let g_mortar = new Mortar(g_map, 900, 600);
+  let g_target = new Target(g_map, g_mortar, 600, 900);
   let g_allObjects = [g_mortar, g_target];
 
   function drawLine(ctx, x0, y0, x1, y1) {
@@ -212,13 +222,11 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
     ctx.fillText(str, x, y);
   }
   
-  let g_frame = 0;
   function drawDbg(ctx) {
-    g_frame++;
     ctx.strokeStyle = '#fff';
     ctx.fillStyle = '#000';
     ctx.font = '25px sans-serif';
-    let text = `${g_frame} | ${g_map.x} ${g_map.y} | ${Math.round(g_map.scale*100)}%`;
+    let text = `${Math.round(g_map.scale*100)}%`;
     drawText(ctx, text, 0, $canvas.height, 'bottom');
   }
   
@@ -266,8 +274,8 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
   let [oldX, oldY] = [0, 0];
   $canvas.onmousemove = function(e) {
     const [sx, sy] = event2canvasXY(e);
-    let [x,y] = g_map.canvas2map(sx, sy);
-    $dbg.innerText = coords2str(x, y);
+    let [x,y] = g_map.canvas2map(sx, sy).map(Math.round);
+    $dbg.innerText = coords2str(x, y) + ` (${x}, ${y})`;
 
     if (g_movingObj) {
       g_movingObj.onMoveDrag(x, y);

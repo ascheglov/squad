@@ -13,9 +13,8 @@ function coords2str(x, y) {
   const letter = String.fromCharCode('A'.charCodeAt(0) + Math.floor(x / 300));
   const number = Math.floor(y / 300) + 1;
   const kp1 = coords2kp(x, y, 100);
-  const kp2 = coords2kp(x, y, 33.333333);
-  const kp3 = coords2kp(x, y, 11.111111);
-  return `${letter}${number}-${kp1}${kp2}${kp3}`;
+  const kp2 = coords2kp(x, y, 100 / 3);
+  return `${letter}${number} - ${kp1} - ${kp2}`;
 }
 
 function point(str) {
