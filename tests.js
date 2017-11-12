@@ -45,5 +45,5 @@ test_r2clicks(50, 0);
 function test_str2point(x, y, str) {
   assert_eq(coords2str(x, y), str, str);
 }
-test_str2point(83, 17, 'A1-795');
-test_str2point(383, 617, 'B3-795');
+test_str2point(83, 17, 'A1 - 7 - 9');
+test_str2point(383, 617, 'B3 - 7 - 9');

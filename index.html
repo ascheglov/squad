@@ -6,26 +6,17 @@
 
 <title>Squad distance calculator</title>
 <meta charset="UTF-8">
+
 <style>
 body { margin: 0; }
-input { background-color: #fff; border: 1px solid black; }
-nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
-#map { display: none; }
-#canvas { z-index: 1; }
-.mark { z-index: 200; position: absolute; }
-#fob-pos {
-  background-image: url("fob.png");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-#fob-pos, #fob-inner, #fob-inner2 {
-  z-index: 2;
-  border: 2px dashed blue; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
+#top, #dbg { position: absolute; z-index: 9; background-color: #fed; }
+#dbg { bottom: 0; right: 0; padding: 3px 3px; min-width: 9em; }
+#help ~ #help-text { display: none; padding: 5px 5px; }
+#help:hover ~ #help-text { display: block; }
+#fob { vertical-align: text-bottom; }
 </style>
 
-<nav>
+<div id="top">
   <select id="map-name">
     <option value="albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
     <option value="Chora1_Minimap.jpg" m-width="4066" m-height="4066">Chora</option>
@@ -34,40 +25,322 @@ nav { float: top; position: fixed; z-index: 9; background-color: #fed; }
     <option value="kohat_minimap.jpg" m-width="4017" m-height="4017">Kohat Toi</option>
     <option value="kokan_minimap.jpg" m-width="2500" m-height="2500">Kokan</option>
     <option value="logarvalley_minimap.jpg" m-width="1766" m-height="1766">Logar Valley</option>
-    <option value="Mestia_Minimap1.jpg" m-width="3200" m-height="3200">Mestia</option>
+    <option value="Mestia_Minimap1.jpg" m-width="2400" m-height="2400">Mestia</option>
     <option value="Narva_Minimap.jpg" m-width="2200" m-height="2200">Narva</option>
     <option value="forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
     <option value="sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
     <option value="yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
   </select>
+  <button id="help">?</button>
   <span>
-    <input type="radio" name="mark" value="target" id="m-target" checked><label for="m-target"><img src="target.png"></label>
-    <input type="radio" name="mark" value="mortar" id="m-mortar"><label for="m-mortar"><img src="mortar.png"></label>
-    <input type="radio" name="mark" value="fob" id="m-fob"><label for="m-fob"><img src="fob.png"></label>
+    <input type="checkbox" id="show-fob" />
+    <label for="show-fob"><img id="fob" src="fob.png"></label>
   </span>
-  <br/>
-  You: <input id="you" type="text" /><br/>
-  Target: <input id="target" type="text" /><br/>
-  <div id="dbg"></div>
-  <span id="result"></span>&nbsp;<button id="save">Save</button><br/>
-  Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.
-  <hr/>
-  <div id="history"></div>
-</nav>
-
-<canvas id="canvas" width="4500" height="4500"></canvas>
-
-<img id="map" src="fob.png"/>
-
-<img class="mark" id="target-pos" src="target.png">
-<img class="mark" id="your-pos" src="mortar.png">
-
-<div class="mark" id="fob-pos" style="width: 800px; height: 800px">
-  <div id="fob-inner" style="width: 300px; height: 300px">
-    <div id="fob-inner2" style="width: 150px; height: 150px"></div>
+  <div id="help-text">
+    <b>Squad distance calculator</b>
+    <hr/>
+    Drag mortar (<img id="mortar" src="mortar.png" />)
+    and target (<img id="target" src="target.png" />).<br/>
+    Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.<br/>
+    Mortar range - 1250m, rockets - 850m.<br/>
+    FOB build - 150m, capture - 75m.
   </div>
 </div>
+<div id="dbg"></div>
+
+<canvas id="canvas" width="680" height="580"></canvas>
+<img id="map" src="fob.png" style="display:none" />
 
 <script src="calc.js"></script>
-<script src="script.js"></script>
 <script src="tests.js"></script>
+
+<script>
+  'use strict';
+
+  const kMapImages = "//nabla.ujkl.ru/squad-maps/";
+
+  let $dbg = document.getElementById('dbg');
+
+  let $canvas = document.getElementById('canvas');
+
+  let $map_name = document.getElementById('map-name');
+  let $map_img = document.getElementById('map');
+
+  let $target_img = document.getElementById('target');
+  let $mortar_img = document.getElementById('mortar');
+  let $fob_img = document.getElementById('fob');
+
+  let $show_fob = document.getElementById('show-fob');
+
+  class Draggable {
+    constructor(x0, y0) {
+      [this.x, this.y] = [x0, y0];
+    }
+    onBeginDrag(x, y) {
+      [this.dragDX, this.dragDY] = [x - this.x, y - this.y];
+    }
+    onMoveDrag(x, y) {
+      this.moveTo(x - this.dragDX, y - this.dragDY);
+    }
+    moveTo(x, y) { this.x = x; this.y = y; }
+    moveBy(dx, dy) { this.x += dx; this.y += dy; }
+  }
+
+  class Map extends Draggable {
+    constructor() {
+      super(0, 0);
+      this.scale = 0.5;
+    }
+    onBeginDrag(x, y) {
+      [this.dragX0, this.dragY0] = [x, y];
+    }
+    onMoveDrag(x, y) {
+      this.x -= x - this.dragX0;
+      this.y -= y - this.dragY0;
+    }
+    map2canvas(x, y) {
+      return [(x - this.x) * this.scale, (y - this.y) * this.scale];
+    }
+    canvas2map(x, y) {
+      return [x / this.scale + this.x, y / this.scale + this.y];
+    }
+    draw(ctx) {
+      let [scx, scy] = [$canvas.width, $canvas.height];
+      ctx.fillStyle='#aaa';
+      ctx.fillRect(0, 0, scx, scy);
+
+      const o = $map_name.querySelector('option:checked');
+      let [cx, cy] = [o.getAttribute('m-width'), o.getAttribute('m-height')];
+      let [sx, sy] = [$map_img.width / cx, $map_img.height / cy];
+      let [ocx, ocy] = [scx/this.scale, scy/this.scale];
+      let [imgX, imgY] = [this.x * sx, this.y * sy];
+      ctx.drawImage($map_img, imgX, imgY, ocx*sx, ocy*sy, 0, 0, scx, scy);
+
+      // Grid
+      let len = Math.max(scx, scy);
+      let [gx, gy] = [Math.floor(this.x/300)*300, Math.floor(this.y/300)*300];
+      for (;;) {
+        ctx.lineWidth = (gx % 3 == 0) ? 3 : 1;
+        let [x, y] = this.map2canvas(gx, gy);
+        ctx.strokeStyle = 'black';
+        drawLine(ctx, x, 0, x, len);
+        drawLine(ctx, 0, y, len, y);
+        if (this.scale > 2.5) {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#aaa';
+          [x, y] = this.map2canvas(gx+100/3, gy+100/3);
+          drawLine(ctx, x, 0, x, len);
+          drawLine(ctx, 0, y, len, y);
+          [x, y] = this.map2canvas(gx+200/3, gy+200/3);
+          drawLine(ctx, x, 0, x, len);
+          drawLine(ctx, 0, y, len, y);
+        }
+        gx+=100; gy+=100;
+        if (x > len) break;
+      }
+    }
+    zoom(sx, sy, zoomOut) {
+      let oldScale = this.scale;
+      let delta = this.scale < 1 ? 0.1 : this.scale < 2 ? 0.2 : 0.5;
+      if (zoomOut) {
+        this.scale = Math.max(0.2, this.scale - delta);
+      } else {
+        this.scale = Math.min(4, this.scale + delta);
+      }
+
+      let k = 1/oldScale - 1/this.scale;
+      this.moveBy(sx * k, sy * k);
+    }
+  };
+
+  class MapObject extends Draggable {
+    constructor(map, x0, y0, img) {
+      super(x0, y0);
+      this.map = map;
+      this.img = img;
+    }
+    toScreen() {
+      return this.map.map2canvas(this.x, this.y);
+    }
+    isMouseOver(ex, ey) {
+      let [sx, sy] = this.toScreen();
+      return Math.hypot(ex - sx, ey - sy) < 15;
+    }
+    drawLast(ctx) {
+      let [sx, sy] = this.toScreen();
+      ctx.drawImage(this.img, sx - 10, sy - 10);
+    }
+  }
+
+  class Mortar extends MapObject {
+    constructor(map, x0, y0) {
+      super(map, x0, y0, $mortar_img);
+    }
+
+    drawFirst(ctx) {
+      let [x, y] = this.toScreen();
+      ctx.strokeStyle = '#0f0';
+      ctx.lineWidth = 1;
+      drawCircle(ctx, x, y, kMaxRocketRange * this.map.scale);
+      drawCircle(ctx, x, y, kMaxMortarRange * this.map.scale);
+    }
+  };
+
+  class Target extends MapObject {
+    constructor(map, mortar, x0, y0) {
+      super(map, x0, y0, $target_img);
+      this.mortar = mortar;
+    }
+
+    drawFirst(ctx) {
+      let [sx, sy] = this.toScreen();
+      ctx.strokeStyle = '#fff';
+      ctx.fillStyle = '#f00';
+      ctx.font = '18px sans-serif';
+
+      let textX = sx + 10;
+      const [dist, dir] = calc(this.mortar.x, this.mortar.y, this.x, this.y);
+      drawText(ctx, `${dir}\u00B0 ${dist}m`, textX, sy, 'bottom');
+
+      const mil = r2mil(dist);
+      const ws = r2clicks(dist);
+      drawText(ctx, `${mil}mil ${ws}w`, textX, sy, 'top');
+    }
+  };
+
+  class Fob extends MapObject {
+    constructor(map, x0, y0) {
+      super(map, x0, y0, $fob_img);
+      this.visible = $show_fob.checked;
+    }
+    drawFirst(ctx) {
+      if (!this.visible) return;
+      let [x, y] = this.toScreen();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#f00';
+      drawCircle(ctx, x, y, 75 * this.map.scale);
+      ctx.strokeStyle = '#00f';
+      drawCircle(ctx, x, y, 150 * this.map.scale);
+      drawCircle(ctx, x, y, 400 * this.map.scale);
+    }
+    drawLast(ctx) {
+      if (!this.visible) return;
+      super.drawLast(ctx);
+    }
+  }
+
+  let g_map = new Map();
+  let g_mortar = new Mortar(g_map, 900, 600);
+  let g_target = new Target(g_map, g_mortar, 600, 900);
+  let g_fob = new Fob(g_map, 900, 900);
+  let g_allObjects = [g_fob, g_mortar, g_target];
+
+  function drawLine(ctx, x0, y0, x1, y1) {
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  }
+
+  function drawCircle(ctx, x, y, r) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+
+  function drawText(ctx, str, x, y, baseline) {
+    ctx.textBaseline = baseline;
+    ctx.lineWidth = 4;
+    ctx.strokeText(str, x, y);
+    ctx.fillText(str, x, y);
+  }
+  
+  function drawDbg(ctx) {
+    ctx.strokeStyle = '#fff';
+    ctx.fillStyle = '#000';
+    ctx.font = '25px sans-serif';
+    let text = `${Math.round(g_map.scale*100)}%`;
+    drawText(ctx, text, 0, $canvas.height, 'bottom');
+  }
+  
+  function drawAll() {
+    let ctx = $canvas.getContext('2d');
+
+    g_map.draw(ctx);
+
+    for (let obj of g_allObjects) obj.drawFirst(ctx);
+    for (let obj of g_allObjects) obj.drawLast(ctx);
+
+    drawDbg(ctx);
+  }
+
+  function event2canvasXY(e) {
+    const rc = $canvas.getBoundingClientRect();
+    return [e.clientX - rc.left, e.clientY - rc.top];
+  }
+
+  let g_movingObj = null;
+  function beginDrag(obj, x, y) {
+    g_movingObj = obj;
+    obj.onBeginDrag(x, y);
+  }
+
+  $canvas.onmousedown = function(e) {
+    let [sx, sy] = event2canvasXY(e);
+    let [x,y] = g_map.canvas2map(sx, sy);
+    for (let obj of g_allObjects) {
+      if (obj.isMouseOver(sx, sy)) {
+        beginDrag(obj, x, y);
+        return;
+      }
+    }
+
+    beginDrag(g_map, x, y);
+  }
+
+  function resetMove() {
+    g_movingObj = null;
+  }
+  $canvas.onmouseup = resetMove;
+  $canvas.onmouseleave = resetMove;
+
+  let [oldX, oldY] = [0, 0];
+  $canvas.onmousemove = function(e) {
+    const [sx, sy] = event2canvasXY(e);
+    let [x,y] = g_map.canvas2map(sx, sy).map(Math.round);
+    $dbg.innerText = coords2str(x, y) + ` (${x}, ${y})`;
+
+    if (g_movingObj) {
+      g_movingObj.onMoveDrag(x, y);
+      drawAll();
+    }
+  }
+  $canvas.onwheel = function(e) {
+    let zoomOut = e.deltaY > 0;
+    let [sx, sy] = event2canvasXY(e);
+    g_map.zoom(sx, sy, zoomOut);
+    drawAll();
+  }
+
+  function changeMap() {
+    const name = $map_name.value;
+    $map_img.src = kMapImages + name;
+  }
+  $map_name.onchange = changeMap;
+  changeMap();
+  $map_img.onload = drawAll;
+
+  function onResize() {
+    $canvas.width = window.innerWidth; 
+    $canvas.height = window.innerHeight;
+    drawAll();
+  }
+  window.addEventListener('resize', onResize, false);
+  onResize();
+
+  function toggleFob() {
+    g_fob.visible = $show_fob.checked;
+    drawAll();
+  }
+  $show_fob.onchange = toggleFob;
+</script>
