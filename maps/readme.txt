@@ -8,9 +8,11 @@ c:\_tools\umodel\umodel.exe -game=ue4.18 -export "c:\Program Files (x86)\Steam\s
 
 2. Convert
 
-for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i -resize 50% %~ni.jpg
+for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni.jpg
 
+"-resize 50%" blurs thin likes like walls.
 
 3. Copy
 
-scp 
+ssh nabla mkdir /tmp/maps
+scp *.jpg nabla:/tmp/maps/
