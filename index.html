@@ -1,117 +1,125 @@
+<!DOCTYPE html>
+<html>
 <!--
   Yet another calculator for Squad (joinsquad.com)
   Author: Abyx
   Belongs to public domain
 -->
 
-<title>Squad distance calculator</title>
-<meta charset="UTF-8">
+<head>
+  <title>Squad distance calculator</title>
+  <meta charset="UTF-8">
 
-<style>
-  body {
-    margin: 0;
-  }
+  <style>
+    body {
+      margin: 0;
+    }
 
-  #top,
-  #dbg {
-    position: absolute;
-    z-index: 9;
-    background-color: #fed;
-  }
+    #top,
+    #dbg {
+      position: absolute;
+      z-index: 9;
+      background-color: #fed;
+    }
 
-  #dbg {
-    bottom: 0;
-    right: 0;
-    padding: 3px 3px;
-    min-width: 9em;
-  }
+    #dbg {
+      bottom: 0;
+      right: 0;
+      padding: 3px 3px;
+      min-width: 9em;
+    }
 
-  #help~#help-text {
-    display: none;
-    padding: 5px 5px;
-  }
+    #help~#help-text {
+      display: none;
+      padding: 5px 5px;
+    }
 
-  #help:hover~#help-text {
-    display: block;
-  }
+    #help:hover~#help-text {
+      display: block;
+    }
 
-  #fob {
-    vertical-align: text-bottom;
-  }
-</style>
+    #fob {
+      vertical-align: text-bottom;
+    }
+  </style>
+</head>
 
-<div id="top">
-  <select id="map-name">
-    <option value="//nabla.ujkl.ru/squad-maps/albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
-    <option value="//nabla.ujkl.ru/squad-maps/Chora1_Minimap.jpg" m-width="4066" m-height="4066" selected>Chora</option>
-    <option value="//nabla.ujkl.ru/squad-maps/Fools_Road_v1_Minimap.jpg" m-width="1733" m-height="1777">Fool's Road</option>
-    <option value="//nabla.ujkl.ru/squad-maps/gorodok_minimap.jpg" m-width="4333" m-height="4333">Gorodok</option>
-    <option value="//nabla.ujkl.ru/squad-maps/kohat_minimap.jpg" m-width="4017" m-height="4017">Kohat Toi</option>
-    <option value="//nabla.ujkl.ru/squad-maps/kokan_minimap.jpg" m-width="2500" m-height="2500">Kokan</option>
-    <option value="//nabla.ujkl.ru/squad-maps/logarvalley_minimap.jpg" m-width="1766" m-height="1766">Logar Valley</option>
-    <option value="//nabla.ujkl.ru/squad-maps/Mestia_Minimap1.jpg" m-width="2400" m-height="2400">Mestia</option>
-    <option value="//nabla.ujkl.ru/squad-maps/Narva_Minimap.jpg" m-width="2200" m-height="2200">Narva</option>
-    <option value="//nabla.ujkl.ru/squad-maps/forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
-    <option value="//nabla.ujkl.ru/squad-maps/sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
-    <option value="//nabla.ujkl.ru/squad-maps/yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
-  </select>
-  <button id="help">?</button>
-  <span>
-    <input type="checkbox" id="show-fob" />
-    <label for="show-fob">
-      <img id="fob" src="fob.png">
-    </label>
-  </span>
-  <div id="help-text">
-    <b>Squad distance calculator</b>
-    <hr/> Drag mortar (
-    <img id="mortar" src="mortar.png" />) and target (
-    <img id="target" src="target.png" />).
-    <br/> Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.
-    <br/> Mortar range - 1250m, rockets - 850m.
-    <br/> FOB build - 150m, capture - 75m.
+<body>
+  <div id="top">
+    <select id="map-name">
+      <option value="//nabla.ujkl.ru/squad-maps/albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
+      <option value="//nabla.ujkl.ru/squad-maps/Chora1_Minimap.jpg" m-width="4066" m-height="4066" selected>Chora</option>
+      <option value="//nabla.ujkl.ru/squad-maps/Fools_Road_v1_Minimap.jpg" m-width="1733" m-height="1777">Fool's Road</option>
+      <option value="//nabla.ujkl.ru/squad-maps/gorodok_minimap.jpg" m-width="4333" m-height="4333">Gorodok</option>
+      <option value="//nabla.ujkl.ru/squad-maps/kohat_minimap.jpg" m-width="4017" m-height="4017">Kohat Toi</option>
+      <option value="//nabla.ujkl.ru/squad-maps/kokan_minimap.jpg" m-width="2500" m-height="2500">Kokan</option>
+      <option value="//nabla.ujkl.ru/squad-maps/logarvalley_minimap.jpg" m-width="1766" m-height="1766">Logar Valley</option>
+      <option value="//nabla.ujkl.ru/squad-maps/Mestia_Minimap1.jpg" m-width="2400" m-height="2400">Mestia</option>
+      <option value="//nabla.ujkl.ru/squad-maps/Narva_Minimap.jpg" m-width="2200" m-height="2200">Narva</option>
+      <option value="//nabla.ujkl.ru/squad-maps/forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
+      <option value="//nabla.ujkl.ru/squad-maps/sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
+      <option value="//nabla.ujkl.ru/squad-maps/yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
+    </select>
+    <button id="help">?</button>
+    <span>
+      <input type="checkbox" id="show-fob" />
+      <label for="show-fob">
+        <img id="fob" src="fob.png">
+      </label>
+    </span>
+    <div id="help-text">
+      <b>Squad distance calculator</b>
+      <hr/> Drag mortar (
+      <img id="mortar" src="mortar.png" />) and target (
+      <img id="target" src="target.png" />).
+      <br/> Hint: &plusmn;10m is &plusmn;5mil or &plusmn;1&deg; at 600m.
+      <br/> Mortar range - 1250m, rockets - 850m.
+      <br/> FOB build - 150m, capture - 75m.
+    </div>
   </div>
-</div>
-<div id="dbg"></div>
+  <div id="dbg"></div>
 
-<canvas id="canvas" width="680" height="580"></canvas>
-<img id="map" src="fob.png" style="display:none" />
+  <canvas id="canvas" width="680" height="580"></canvas>
+  <img id="map" src="fob.png" style="display:none" />
 
-<script src="calc.js"></script>
-<script src="tests.js"></script>
-<script src="impl.js"></script>
-<script src="main.js"></script>
+  <script src="calc.js"></script>
+  <script src="tests.js"></script>
+  <script src="impl.js"></script>
+  <script src="main.js"></script>
 
-<!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-  (function (d, w, c) {
-    (w[c] = w[c] || []).push(function () {
-      try {
-        w.yaCounter46694946 = new Ya.Metrika({
-          id: 46694946,
-          clickmap: true,
-          trackLinks: true,
-          accurateTrackBounce: true,
-          ut: "noindex"
-        });
-      } catch (e) { }
-    });
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+    (function (d, w, c) {
+      (w[c] = w[c] || []).push(function () {
+        try {
+          w.yaCounter46694946 = new Ya.Metrika({
+            id: 46694946,
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            ut: "noindex"
+          });
+        } catch (e) { }
+      });
 
-    var n = d.getElementsByTagName("script")[0],
-      s = d.createElement("script"),
-      f = function () { n.parentNode.insertBefore(s, n); };
-    s.type = "text/javascript";
-    s.async = true;
-    s.src = "https://mc.yandex.ru/metrika/watch.js";
+      var n = d.getElementsByTagName("script")[0],
+        s = d.createElement("script"),
+        f = function () { n.parentNode.insertBefore(s, n); };
+      s.type = "text/javascript";
+      s.async = true;
+      s.src = "https://mc.yandex.ru/metrika/watch.js";
 
-    if (w.opera == "[object Opera]") {
-      d.addEventListener("DOMContentLoaded", f, false);
-    } else { f(); }
-  })(document, window, "yandex_metrika_callbacks");
-</script>
-<noscript>
-  <div>
-    <img src="https://mc.yandex.ru/watch/46694946?ut=noindex" style="position:absolute; left:-9999px;" alt="" />
-  </div>
-</noscript>
-<!-- /Yandex.Metrika counter -->
+      if (w.opera == "[object Opera]") {
+        d.addEventListener("DOMContentLoaded", f, false);
+      } else { f(); }
+    })(document, window, "yandex_metrika_callbacks");
+  </script>
+  <noscript>
+    <div>
+      <img src="https://mc.yandex.ru/watch/46694946?ut=noindex" style="position:absolute; left:-9999px;" alt="" />
+    </div>
+  </noscript>
+  <!-- /Yandex.Metrika counter -->
+</body>
+
+</html>
