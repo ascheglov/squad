@@ -26,8 +26,8 @@ function point(str) {
   for (let kp of keypads_str.replace(/[^0-9]+/g, '')) {
     grid /= 3;
     //    0  1  2  3  4  5  6  7  8  9
-    x += [0,-1, 0, 1,-1, 0, 1,-1, 0, 1][kp] * grid;
-    y += [0, 1, 1, 1, 0, 0, 0,-1,-1,-1][kp] * grid;
+    x += [0, -1, 0, 1, -1, 0, 1, -1, 0, 1][kp] * grid;
+    y += [0, 1, 1, 1, 0, 0, 0, -1, -1, -1][kp] * grid;
   }
 
   return [x, y];
@@ -55,5 +55,5 @@ function r2mil(r) {
 function r2clicks(r) {
   const dists = [30, 115, 200, 257.5, 292.5, 320, 365, 412.5, 462.5, 515, 550, 572.5, 607.5, 640, 665, 690, 720, 742.5, 760, 795, 9000];
   if (r <= 60 || r >= kMaxRocketRange) return 0;
-  return dists.findIndex(function(d) { return r < d; });
+  return dists.findIndex((d) => r < d);
 }

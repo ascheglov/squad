@@ -25,7 +25,7 @@ test_calc('a1', 'a1 8', 100, 0);
 test_calc('a1', 'a1 9', 141, 45);
 test_calc('a1', 'a1 6', 100, 90);
 test_calc('a1', 'a1 4', 100, 270);
-test_calc('a2', 'b1',   424, 45);
+test_calc('a2', 'b1', 424, 45);
 
 function test_r2mil(dist, mil) {
   assert_eq(r2mil(dist), mil, `${dist}m :`);
