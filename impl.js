@@ -148,6 +148,14 @@ class Mortar extends MapObject {
   }
 };
 
+function drawMortarGridLine(ctx, x0, y0, x1, y1, dir) {
+  let phi = dir * Math.PI / 180;
+  let [kx, ky] = [Math.sin(phi), -Math.cos(phi)];
+  let r = Math.hypot(x1 - x0, y1 - y0);
+  let [r0, r1] = [r - 30, r + 30];
+  drawLine(ctx, x0 + kx * r0, y0 + ky * r0, x0 + kx * r1, y0 + ky * r1);
+}
+
 class Target extends MapObject {
   constructor(map, mortar, x0, y0, img) {
     super(map, x0, y0, img);
@@ -156,12 +164,19 @@ class Target extends MapObject {
 
   drawFirst(ctx) {
     let [sx, sy] = this.toScreen();
+    const [dist, dir] = calc(this.mortar.x, this.mortar.y, this.x, this.y);
+
+    let [smx, smy] = this.mortar.toScreen();
+    ctx.strokeStyle = '#0f0';
+    drawMortarGridLine(ctx, smx, smy, sx, sy, dir - 1);
+    drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 0);
+    drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 1);
+
     ctx.strokeStyle = '#fff';
     ctx.fillStyle = '#f00';
     ctx.font = '18px sans-serif';
 
     let textX = sx + 10;
-    const [dist, dir] = calc(this.mortar.x, this.mortar.y, this.x, this.y);
     drawText(ctx, `${dir}\u00B0 ${dist}m`, textX, sy, 'bottom');
 
     const mil = r2mil(dist);
@@ -182,7 +197,6 @@ class Fob extends MapObject {
     ctx.strokeStyle = '#f00';
     drawCircle(ctx, x, y, 75 * this.map.scale);
     ctx.strokeStyle = '#00f';
-    drawCircle(ctx, x, y, 150 * this.map.scale);
     drawCircle(ctx, x, y, 400 * this.map.scale);
   }
   drawLast(ctx) {
