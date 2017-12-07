@@ -12,6 +12,7 @@ let $target_img = document.getElementById('target');
 let $fob_img = document.getElementById('fob');
 
 let $show_fob = document.getElementById('show-fob');
+let $show_target_circles = document.getElementById('show-target-circles');
 
 let g_map = new Map($map_img);
 let g_mortar = new Mortar(g_map, 900, 600, $mortar_img);
@@ -101,3 +102,8 @@ function toggleFob() {
   drawAll();
 }
 $show_fob.onchange = toggleFob;
+
+$show_target_circles.onchange = function() {
+  g_target.drawCircles = $show_target_circles.checked;
+  drawAll();
+}

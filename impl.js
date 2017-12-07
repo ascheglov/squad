@@ -160,14 +160,24 @@ class Target extends MapObject {
   constructor(map, mortar, x0, y0, img) {
     super(map, x0, y0, img);
     this.mortar = mortar;
+    this.drawCircles = false;
   }
 
   drawFirst(ctx) {
     let [sx, sy] = this.toScreen();
+
+    if (this.drawCircles) {
+      ctx.strokeStyle = '#f00';
+      ctx.lineWidth = 1;
+      drawCircle(ctx, sx, sy, kMaxRocketRange * this.map.scale);
+      drawCircle(ctx, sx, sy, kMaxMortarRange * this.map.scale);
+    }
+
     const [dist, dir] = calc(this.mortar.x, this.mortar.y, this.x, this.y);
 
     let [smx, smy] = this.mortar.toScreen();
     ctx.strokeStyle = '#0f0';
+    ctx.lineWidth = 1;
     drawMortarGridLine(ctx, smx, smy, sx, sy, dir - 1);
     drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 0);
     drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 1);
