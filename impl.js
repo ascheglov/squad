@@ -148,12 +148,18 @@ class Mortar extends MapObject {
   }
 };
 
-function drawMortarGridLine(ctx, x0, y0, x1, y1, dir) {
+function drawMortarGridLine(ctx, x0, y0, r0, r1, dir) {
   let phi = dir * Math.PI / 180;
   let [kx, ky] = [Math.sin(phi), -Math.cos(phi)];
-  let r = Math.hypot(x1 - x0, y1 - y0);
-  let [r0, r1] = [r - 30, r + 30];
   drawLine(ctx, x0 + kx * r0, y0 + ky * r0, x0 + kx * r1, y0 + ky * r1);
+}
+
+function drawMortarGridArc(ctx, x0, y0, r, dir) {
+  let alpha = Math.PI / 180;
+  let phi = (dir - 90) * Math.PI / 180;
+  ctx.beginPath();
+  ctx.arc(x0, y0, r, phi - 2 * alpha, phi + 2 * alpha);
+  ctx.stroke();
 }
 
 class Target extends MapObject {
@@ -174,13 +180,19 @@ class Target extends MapObject {
     }
 
     const [dist, dir] = calc(this.mortar.x, this.mortar.y, this.x, this.y);
+    const mil = r2mil(dist);
+    const mil10 = Math.round(r2mil(dist) / 10) * 10;
 
     let [smx, smy] = this.mortar.toScreen();
     ctx.strokeStyle = '#0f0';
     ctx.lineWidth = 1;
-    drawMortarGridLine(ctx, smx, smy, sx, sy, dir - 1);
-    drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 0);
-    drawMortarGridLine(ctx, smx, smy, sx, sy, dir + 1);
+    const [ra, r0, r1, r2, rb] = [mil10 - 10, mil10 - 5, mil10, mil10 + 5, mil10 + 10].map(x => mil2r(x) * this.map.scale);
+    drawMortarGridLine(ctx, smx, smy, ra, rb, dir - 1);
+    drawMortarGridLine(ctx, smx, smy, ra, rb, dir + 0);
+    drawMortarGridLine(ctx, smx, smy, ra, rb, dir + 1);
+    drawMortarGridArc(ctx, smx, smy, r0, dir);
+    drawMortarGridArc(ctx, smx, smy, r1, dir);
+    drawMortarGridArc(ctx, smx, smy, r2, dir);
 
     ctx.strokeStyle = '#fff';
     ctx.fillStyle = '#f00';
@@ -189,7 +201,6 @@ class Target extends MapObject {
     let textX = sx + 10;
     drawText(ctx, `${dir}\u00B0 ${dist}m`, textX, sy, 'bottom');
 
-    const mil = r2mil(dist);
     const ws = r2clicks(dist);
     drawText(ctx, `${mil}mil ${ws}w`, textX, sy, 'top');
   }

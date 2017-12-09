@@ -41,15 +41,23 @@ function calc(x0, y0, x1, y1) {
   return [dist, dir];
 }
 
+//                 50    100   150   200   250   300   350   400   450
+const kMilTable = [1579, 1558, 1538, 1517, 1496, 1475, 1453, 1431, 1409, 1387, 1364, 1341, 1317, 1292, 1267, 1240, 1212, 1183, 1152, 1118, 1081, 1039, 988, 918, 800];
+
 function r2mil(r) {
   if (r <= 50 || r >= kMaxMortarRange) return 0;
-  //           50    100   150   200   250   300   350   400   450
-  const mil = [1579, 1558, 1538, 1517, 1496, 1475, 1453, 1431, 1409, 1387, 1364, 1341, 1317, 1292, 1267, 1240, 1212, 1183, 1152, 1118, 1081, 1039, 988, 918, 800];
   const i_frac = r / 50 - 1;
   const i = Math.floor(i_frac);
-  const [a, b] = mil.slice(i);
+  const [a, b] = kMilTable.slice(i);
   const k = i_frac - i;
   return Math.round(a - (a - b) * k);
+}
+
+function mil2r(mil) {
+  if (mil <= 800 || mil >= 1579) return 0;
+  const i = kMilTable.findIndex(x => x < mil);
+  const [a, b] = kMilTable.slice(i - 1);
+  return i * 50 + 50 * (a - mil) / (a - b);
 }
 
 function r2clicks(r) {

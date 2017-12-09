@@ -47,3 +47,10 @@ function test_str2point(x, y, str) {
 }
 test_str2point(83, 17, 'A1 - 7 - 9');
 test_str2point(383, 617, 'B3 - 7 - 9');
+
+function test_mil2r(mil) {
+  assert_eq(r2mil(mil2r(mil)), mil, `r2mil`);
+}
+test_mil2r(1440);
+test_mil2r(801);
+test_mil2r(1578);
