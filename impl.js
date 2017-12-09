@@ -209,7 +209,7 @@ class Target extends MapObject {
 class Fob extends MapObject {
   constructor(map, x0, y0, img) {
     super(map, x0, y0, img);
-    this.visible = $show_fob.checked;
+    this.visible = false;
   }
   drawFirst(ctx) {
     if (!this.visible) return;

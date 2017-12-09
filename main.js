@@ -1,5 +1,7 @@
 'use strict';
 
+document.addEventListener("DOMContentLoaded", function(event) {
+
 let $dbg = document.getElementById('dbg');
 
 let $map_name = document.getElementById('map-name');
@@ -97,13 +99,14 @@ function onResize() {
 window.addEventListener('resize', onResize, false);
 onResize();
 
-function toggleFob() {
+$show_fob.onchange = function() {
   g_fob.visible = $show_fob.checked;
   drawAll();
 }
-$show_fob.onchange = toggleFob;
 
 $show_target_circles.onchange = function() {
   g_target.drawCircles = $show_target_circles.checked;
   drawAll();
 }
+
+});
