@@ -187,12 +187,16 @@ class Target extends MapObject {
     ctx.strokeStyle = '#0f0';
     ctx.lineWidth = 1;
     const [ra, r0, r1, r2, rb] = [mil10 - 10, mil10 - 5, mil10, mil10 + 5, mil10 + 10].map(x => mil2r(x) * this.map.scale);
+    drawMortarGridLine(ctx, smx, smy, ra, rb, dir - 2);
     drawMortarGridLine(ctx, smx, smy, ra, rb, dir - 1);
     drawMortarGridLine(ctx, smx, smy, ra, rb, dir + 0);
     drawMortarGridLine(ctx, smx, smy, ra, rb, dir + 1);
+    drawMortarGridLine(ctx, smx, smy, ra, rb, dir + 2);
+    drawMortarGridArc(ctx, smx, smy, ra, dir);
     drawMortarGridArc(ctx, smx, smy, r0, dir);
     drawMortarGridArc(ctx, smx, smy, r1, dir);
     drawMortarGridArc(ctx, smx, smy, r2, dir);
+    drawMortarGridArc(ctx, smx, smy, rb, dir);
 
     ctx.strokeStyle = '#fff';
     ctx.fillStyle = '#f00';
