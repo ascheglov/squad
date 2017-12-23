@@ -16,3 +16,22 @@ for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni
 
 ssh nabla mkdir /tmp/maps
 scp *.jpg nabla:/tmp/maps/
+
+
+--------------------------------------------------
+
+v10 preview
+
+c:\_tools\umodel\umodel.exe -game=ue4.18 -path="c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content" -list */maps/*minimap*
+c:\_tools\umodel\umodel.exe -game=ue4.18 -path="c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content" -export /Squad/Content/Maps/Belaya_Pass/Belaya_Minimap.uasset
+for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni.jpg
+scp *.jpg nabla:/tmp/maps/
+
+
+----------------------------------------------------
+Finding map size
+
+Point target and call sizeHelperX / sizeHelperY from JS console:
+
+    sizeHelperY("G12 21")
+    sizeHelperX("K2 71")

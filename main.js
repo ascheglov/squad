@@ -89,6 +89,17 @@ $map_img.onload = function () {
   drawAll();
 };
 
+function sizeHelperImpl(grid, xx, yy) {
+  let [x, y] = point(grid);
+  let [cx, cy] = [g_map.mapCX * (x-100/6) / g_target.x, g_map.mapCY * (y-100/6) / g_target.y];
+  g_map.resizeMap(xx ? cx : g_map.mapCX, yy ? cy : g_map.mapCY);
+  drawAll();
+  return [g_map.mapCX, g_map.mapCY];
+}
+// Point target and enter its grid, e.g. "G12 21".
+function sizeHelperX(grid) { return sizeHelperImpl(grid, true, false); }
+function sizeHelperY(grid) { return sizeHelperImpl(grid, false, true); }
+
 function onResize() {
   $canvas.width = window.innerWidth;
   $canvas.height = window.innerHeight;
