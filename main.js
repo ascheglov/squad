@@ -14,9 +14,12 @@ let $fob_img = document.getElementById('fob');
 let $show_fob = document.getElementById('show-fob');
 let $show_target_circles = document.getElementById('show-target-circles');
 
+let $mortar_grid = document.getElementById('mortar-grid');
+let $target_grid = document.getElementById('target-grid');
+
 let g_map = new Map($map_img);
-let g_mortar = new Mortar(g_map, 900, 600, $mortar_img);
-let g_target = new Target(g_map, g_mortar, 600, 900, $target_img);
+let g_mortar = new Mortar(g_map, 900, 600, $mortar_img, $mortar_grid);
+let g_target = new Target(g_map, g_mortar, 600, 900, $target_img, $target_grid);
 let g_fob = new Fob(g_map, 900, 900, $fob_img);
 let g_allObjects = [g_fob, g_mortar, g_target];
 
@@ -51,6 +54,13 @@ $canvas.onmousedown = function (e) {
   }
 
   beginDrag(g_map, x, y);
+}
+
+$canvas.ondblclick = function (e) {
+  let [sx, sy] = event2canvasXY(e);
+  let [x, y] = g_map.canvas2map(sx, sy);
+  g_target.moveTo(x, y);
+  drawAll();
 }
 
 function resetMove() {
@@ -91,7 +101,7 @@ $map_img.onload = function () {
 
 function sizeHelperImpl(grid, xx, yy) {
   let [x, y] = point(grid);
-  let [cx, cy] = [g_map.mapCX * (x-100/6) / g_target.x, g_map.mapCY * (y-100/6) / g_target.y];
+  let [cx, cy] = [g_map.mapCX * (x - 100 / 6) / g_target.x, g_map.mapCY * (y - 100 / 6) / g_target.y];
   g_map.resizeMap(xx ? cx : g_map.mapCX, yy ? cy : g_map.mapCY);
   drawAll();
   return [g_map.mapCX, g_map.mapCY];
@@ -114,7 +124,23 @@ function toggleFob() {
 }
 $show_fob.onchange = toggleFob;
 
-$show_target_circles.onchange = function() {
+$show_target_circles.onchange = function () {
   g_target.drawCircles = $show_target_circles.checked;
   drawAll();
+}
+
+function updateFromGrid(el, obj) {
+  try {
+    let [x, y] = point(el.value);
+    obj.moveTo(x, y);
+    drawAll();
+  } catch (e) { }
+}
+
+$mortar_grid.oninput = function () {
+  updateFromGrid($mortar_grid, g_mortar);
+}
+
+$target_grid.oninput = function () {
+  updateFromGrid($target_grid, g_target);
 }

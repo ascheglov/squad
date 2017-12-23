@@ -116,10 +116,12 @@ class Map extends Draggable {
 };
 
 class MapObject extends Draggable {
-  constructor(map, x0, y0, img) {
+  constructor(map, x0, y0, img, gridElem) {
     super(x0, y0);
     this.map = map;
     this.img = img;
+    this.gridElem = gridElem;
+    this.updateGridElem();
   }
   toScreen() {
     return this.map.map2canvas(this.x, this.y);
@@ -128,15 +130,23 @@ class MapObject extends Draggable {
     let [sx, sy] = this.toScreen();
     return Math.hypot(ex - sx, ey - sy) < 15;
   }
+  onMoveDrag(x, y) {
+    super.onMoveDrag(x, y);
+    this.updateGridElem();
+  }
   drawLast(ctx) {
     let [sx, sy] = this.toScreen();
     ctx.drawImage(this.img, sx - 10, sy - 10);
   }
+  updateGridElem() {
+    if (this.gridElem)
+      this.gridElem.value = coords2str_short(this.x, this.y);
+  }
 }
 
 class Mortar extends MapObject {
-  constructor(map, x0, y0, img) {
-    super(map, x0, y0, img);
+  constructor(map, x0, y0, img, gridElem) {
+    super(map, x0, y0, img, gridElem);
   }
 
   drawFirst(ctx) {
@@ -163,8 +173,8 @@ function drawMortarGridArc(ctx, x0, y0, r, dir) {
 }
 
 class Target extends MapObject {
-  constructor(map, mortar, x0, y0, img) {
-    super(map, x0, y0, img);
+  constructor(map, mortar, x0, y0, img, gridElem) {
+    super(map, x0, y0, img, gridElem);
     this.mortar = mortar;
     this.drawCircles = false;
   }
@@ -212,7 +222,7 @@ class Target extends MapObject {
 
 class Fob extends MapObject {
   constructor(map, x0, y0, img) {
-    super(map, x0, y0, img);
+    super(map, x0, y0, img, null);
     this.visible = $show_fob.checked;
   }
   drawFirst(ctx) {

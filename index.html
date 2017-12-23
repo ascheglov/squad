@@ -43,6 +43,10 @@
     #fob {
       vertical-align: text-bottom;
     }
+
+    input.grid {
+      width: 4.5em;
+    }
   </style>
 </head>
 
@@ -74,12 +78,21 @@
       <input type="checkbox" id="show-target-circles" />
       <label for="show-target-circles" style="color:red">O&nbsp;</label>
     </span>
+    <br/>
+    <span>
+      Mortar:
+      <input id="mortar-grid" type="text" class="grid" />
+    </span>
+    <span>
+      Target:
+      <input id="target-grid" type="text" class="grid" />
+    </span>
     <div id="help-text">
-      <b>Squad distance calculator</b>
+      <hr/><b>Squad distance calculator</b>
       <hr/> Drag mortar (
       <img id="mortar" src="mortar.png" />) and target (
       <img id="target" src="target.png" />).
-      <br/> Green lines around target - 1&deg; grid.
+      <br/> Double-click to set target.
       <br/> Mortar range - 1250m, rockets - 850m.
       <br/> FOB red line - 75m capture range.
     </div>
@@ -89,9 +102,9 @@
   <canvas id="canvas" width="680" height="580"></canvas>
   <img id="map" src="fob.png" style="display:none" />
 
-  <script src="calc.js?r=1"></script>
-  <script src="impl.js?r=1"></script>
-  <script src="main.js?r=1"></script>
+  <script src="calc.js?r=2"></script>
+  <script src="impl.js?r=2"></script>
+  <script src="main.js?r=2"></script>
   <script src="tests.js"></script>
 
   <!-- Yandex.Metrika counter -->

@@ -9,12 +9,21 @@ function coords2kp(x, y, size) {
   return 1 + x + 3 * (2 - y);
 }
 
-function coords2str(x, y) {
+function coords2grid(x, y) {
   const letter = String.fromCharCode('A'.charCodeAt(0) + Math.floor(x / 300));
   const number = Math.floor(y / 300) + 1;
-  const kp1 = coords2kp(x, y, 100);
-  const kp2 = coords2kp(x, y, 100 / 3);
-  return `${letter}${number} - ${kp1} - ${kp2}`;
+  return [`${letter}${number}`, [1, 3, 9, 27].map(i => coords2kp(x, y, 100 / i))];
+}
+
+function coords2str(x, y) {
+  const [square, subs] = coords2grid(x, y);
+  const [kp1, kp2] = subs;
+  return `${square} - ${kp1} - ${kp2}`;
+}
+
+function coords2str_short(x, y) {
+  const [square, subs] = coords2grid(x, y);
+  return square + ' ' + subs.join('');
 }
 
 function point(str) {
