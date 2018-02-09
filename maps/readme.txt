@@ -1,32 +1,17 @@
-1. Extract
+1. List
 
-for /r "c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content\Maps" %i in (*minimap*) do c:\_tools\umodel\umodel.exe -game=ue4.18 -export "%i"
+> c:\_tools\git\usr\bin\bash.exe
+$ P='c:/Program Files (x86)/Steam/steamapps/common/Squad/Squad/Content'
+$ /c/_tools/umodel/umodel.exe -game=ue4.18 "-path=$P" -list '*/maps/*minimap*' | grep Loading | cut -d' ' -f3 > list.txt
+$ /c/_tools/umodel/umodel.exe -game=ue4.18 "-path=$P" -list '*/maps/*overlay*' | grep Loading | cut -d' ' -f3 >> list.txt
 
-1a. Uncommon names
+2. Extract
 
-c:\_tools\umodel\umodel.exe -game=ue4.18 -export "c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content\Maps\Sumari\sumari_overlay.uasset"
+$ while read n; do /c/_tools/umodel/umodel.exe -game=ue4.18 "-path=$P" -export $n; done < list.txt
 
-2. Convert
+3. Convert
 
-for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni.jpg
-
-"-resize 50%" blurs thin likes like walls.
-
-3. Copy
-
-ssh nabla mkdir /tmp/maps
-scp *.jpg nabla:/tmp/maps/
-
-
---------------------------------------------------
-
-v10 preview
-
-c:\_tools\umodel\umodel.exe -game=ue4.18 -path="c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content" -list */maps/*minimap*
-c:\_tools\umodel\umodel.exe -game=ue4.18 -path="c:\Program Files (x86)\Steam\steamapps\common\Squad\Squad\Content" -export /Squad/Content/Maps/Belaya_Pass/Belaya_Minimap.uasset
-for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni.jpg
-scp *.jpg nabla:/tmp/maps/
-
+> for /r .\UmodelExport\ %i in (*.tga) do c:\_tools\ImageMagick\magick.exe %i %~ni.jpg
 
 ----------------------------------------------------
 Finding map size
