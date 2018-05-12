@@ -6,6 +6,7 @@
 /Squad/Content/Maps/Forest/forest_minimap.uasset
 /Squad/Content/Maps/Gorodok/gorodok_minimap.uasset
 /Squad/Content/Maps/Jensens_Range/Jensens_Range_Minimap.uasset
+/Squad/Content/Maps/Kamdesh_Highlands/Kamdesh_Minimap_Final.uasset
 /Squad/Content/Maps/Kohat/kohat_minimap.uasset
 /Squad/Content/Maps/Kokan_Valley/kokan_minimap.uasset
 /Squad/Content/Maps/Logar_Valley/logarvalley_minimap.uasset
