@@ -4,4 +4,4 @@ Belongs to public domain.
 
 --------------
 
-[>>> Live version <<<](http://nabla.ujkl.ru/squad/)
+[>>> Live version <<<](http://squad.ujkl.ru/)
