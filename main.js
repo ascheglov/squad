@@ -9,9 +9,7 @@ let $canvas = document.getElementById('canvas');
 
 let $mortar_img = document.getElementById('mortar');
 let $target_img = document.getElementById('target');
-let $fob_img = document.getElementById('fob');
 
-let $show_fob = document.getElementById('show-fob');
 let $show_target_circles = document.getElementById('show-target-circles');
 
 let $mortar_grid = document.getElementById('mortar-grid');
@@ -20,8 +18,7 @@ let $target_grid = document.getElementById('target-grid');
 let g_map = new Map($map_img);
 let g_mortar = new Mortar(g_map, 900, 600, $mortar_img, $mortar_grid);
 let g_target = new Target(g_map, g_mortar, 600, 900, $target_img, $target_grid);
-let g_fob = new Fob(g_map, 900, 900, $fob_img);
-let g_allObjects = [g_fob, g_mortar, g_target];
+let g_allObjects = [g_mortar, g_target];
 
 function drawAll() {
   let ctx = $canvas.getContext('2d');
@@ -117,12 +114,6 @@ function onResize() {
 }
 window.addEventListener('resize', onResize, false);
 onResize();
-
-function toggleFob() {
-  g_fob.visible = $show_fob.checked;
-  drawAll();
-}
-$show_fob.onchange = toggleFob;
 
 $show_target_circles.onchange = function () {
   g_target.drawCircles = $show_target_circles.checked;

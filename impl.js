@@ -153,7 +153,7 @@ class Mortar extends MapObject {
     let [x, y] = this.toScreen();
     ctx.strokeStyle = '#0f0';
     ctx.lineWidth = 1;
-    drawCircle(ctx, x, y, kMaxRocketRange * this.map.scale);
+    // drawCircle(ctx, x, y, kMaxRocketRange * this.map.scale);
     drawCircle(ctx, x, y, kMaxMortarRange * this.map.scale);
   }
 };
@@ -185,7 +185,7 @@ class Target extends MapObject {
     if (this.drawCircles) {
       ctx.strokeStyle = '#f00';
       ctx.lineWidth = 1;
-      drawCircle(ctx, sx, sy, kMaxRocketRange * this.map.scale);
+      // drawCircle(ctx, sx, sy, kMaxRocketRange * this.map.scale);
       drawCircle(ctx, sx, sy, kMaxMortarRange * this.map.scale);
     }
 
@@ -215,27 +215,7 @@ class Target extends MapObject {
     let textX = sx + 10;
     drawText(ctx, `${dir}\u00B0 ${dist}m`, textX, sy, 'bottom');
 
-    const ws = r2clicks(dist);
-    drawText(ctx, `${mil}mil ${ws}w`, textX, sy, 'top');
+    // const ws = r2clicks(dist);
+    drawText(ctx, `${mil}mil`, textX, sy, 'top');
   }
 };
-
-class Fob extends MapObject {
-  constructor(map, x0, y0, img) {
-    super(map, x0, y0, img, null);
-    this.visible = $show_fob.checked;
-  }
-  drawFirst(ctx) {
-    if (!this.visible) return;
-    let [x, y] = this.toScreen();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = '#f00';
-    drawCircle(ctx, x, y, 75 * this.map.scale);
-    ctx.strokeStyle = '#00f';
-    drawCircle(ctx, x, y, 400 * this.map.scale);
-  }
-  drawLast(ctx) {
-    if (!this.visible) return;
-    super.drawLast(ctx);
-  }
-}
