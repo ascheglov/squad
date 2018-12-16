@@ -14,6 +14,8 @@
 /Squad/Content/Maps/Mestia_Green/Mestia_Minimap1.uasset
 /Squad/Content/Maps/Narva/Narva_Minimap.uasset
 /Squad/Content/Maps/Narva/Narva_Minimap_Skirmish.uasset
+/Squad/Content/Maps/Skorpo/Skorpo_Minimap.uasset
+/Squad/Content/Maps/Skorpo/skorpo_minimap_skirmish.uasset
 /Squad/Content/Maps/Tallil_Outskirts/Tallil_Minimap.uasset
 /Squad/Content/Maps/Tallil_Outskirts/Tallil_Minimap_Skirmish.uasset
 /Squad/Content/Maps/Tallil_Outskirts/Tallil_Minimap_Skirmish_v2.uasset
