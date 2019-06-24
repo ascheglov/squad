@@ -40,10 +40,6 @@
       display: block;
     }
 
-    #fob {
-      vertical-align: text-bottom;
-    }
-
     input.grid {
       width: 4.5em;
     }
@@ -54,28 +50,30 @@
   <div id="top">
     <select id="map-name">
       <option value="maps/1x1.jpg" m-width="4096" m-height="4096">[no map]</option>
-      <option value="maps/albasrah_minimap.jpg" m-width="3200" m-height="3200">Al Basrah</option>
-      <option value="maps/Belaya_Minimap.jpg" m-width="3905" m-height="3905">Belaya</option>
-      <option value="maps/Chora1_Minimap.jpg" m-width="4066" m-height="4066">Chora</option>
-      <option value="maps/Fools_Road_v1_Minimap.jpg" m-width="1733" m-height="1777">Fool's Road</option>
-      <option value="maps/Jensens_Range_Minimap.jpg" m-width="1511" m-height="1510">Jensen's Range</option>
-      <option value="maps/gorodok_minimap.jpg" m-width="4333" m-height="4333">Gorodok</option>
-      <option value="maps/Kamdesh_Minimap_Final.jpg" m-width="4032" m-height="4032">Kamdesh</option>
-      <option value="maps/kohat_minimap.jpg?r=2" m-width="4017" m-height="4017">Kohat Toi</option>
-      <option value="maps/kokan_minimap.jpg" m-width="2500" m-height="2500" selected>Kokan</option>
-      <option value="maps/logarvalley_minimap.jpg" m-width="1762" m-height="1762">Logar Valley</option>
-      <option value="maps/Mestia_Minimap1.jpg" m-width="2400" m-height="2400">Mestia</option>
-      <option value="maps/Narva_Minimap.jpg" m-width="2800" m-height="2800">Narva</option>
-      <option value="maps/forest_minimap.jpg" m-width="1200" m-height="1200">OP First Light</option>
-      <option value="maps/sumari_overlay.jpg" m-width="1300" m-height="1300">Sumari Bala</option>
-      <option value="maps/yehorivka_minimap.jpg" m-width="4033" m-height="4033">Yehorivka</option>
+      <option value="maps/albasrah_minimap.jpg?r=3v" m-width="3200" m-height="3200">Al Basrah</option>
+      <option value="maps/Belaya_Minimap.jpg?r=3v" m-width="3905" m-height="3905">Belaya</option>
+      <option value="maps/Chora1_Minimap.jpg?r=3" m-width="4066" m-height="4066">Chora</option>
+      <option value="maps/Fools_Road_v1_Minimap.jpg?r=3" m-width="1733" m-height="1777">Fool's Road</option>
+      <option value="maps/gorodok_minimap.jpg?r=3" m-width="4333" m-height="4333">Gorodok</option>
+      <!-- <option value="maps/Gorodok_Minimap_Skirmish_v1.jpg?r=3" m-width="4333" m-height="4333">Gorodok (Mini)</option> -->
+      <option value="maps/Jensens_Range_Minimap.jpg?r=3v" m-width="4008" m-height="4008">Jensen's Range</option>
+      <option value="maps/Kamdesh_Minimap_Final.jpg?r=3" m-width="4032" m-height="4032">Kamdesh</option>
+      <option value="maps/kohat_minimap.jpg?r=3" m-width="4017" m-height="4017">Kohat Toi</option>
+      <!-- <option value="maps/kohat_minimap_skirmish.jpg?r=3" m-width="4017" m-height="4017">Kohat Toi (Mini)</option> -->
+      <option value="maps/kokan_minimap.jpg?r=3" m-width="2500" m-height="2500" selected>Kokan</option>
+      <option value="maps/logarvalley_minimap.jpg?r=3" m-width="1762" m-height="1762">Logar Valley</option>
+      <option value="maps/Mestia_Minimap1.jpg?r=3" m-width="2400" m-height="2400">Mestia</option>
+      <option value="maps/Narva_Minimap.jpg?r=3" m-width="2800" m-height="2800">Narva</option>
+      <!-- <option value="maps/Narva_Minimap_Skirmish.jpg?r=3" m-width="2800" m-height="2800">Narva (Mini)</option> -->
+      <option value="maps/sumari_overlay.jpg?r=3" m-width="1300" m-height="1300">Sumari Bala</option>
+      <option value="maps/Tallil_Minimap.jpg?r=3v" m-width="4680" m-height="4680">Talil outskirts</option>
+      <!-- <option value="maps/Tallil_Minimap_Skirmish.jpg?r=3" m-width="100" m-height="100">Talil outskirts (Mini#1)</option> -->
+      <!-- <option value="maps/Tallil_Minimap_Skirmish_v2.jpg?r=3" m-width="100" m-height="100">Talil outskirts (Mini#2)</option> -->
+      <option value="maps/yehorivka_minimap.jpg?r=3v2" m-width="5000" m-height="5000">Yehorivka</option>
+      <option value="maps/Yehorivka_Minimap_Skirmish_v1.jpg?r=3v2" m-width="2779" m-height="2779">Yehorivka (Mini)</option>
     </select>
     <button id="help">?</button>
     <span>
-      <input type="checkbox" id="show-fob" />
-      <label for="show-fob">
-        <img id="fob" src="fob.png">
-      </label>
       <input type="checkbox" id="show-target-circles" />
       <label for="show-target-circles" style="color:red">O&nbsp;</label>
     </span>
@@ -94,8 +92,6 @@
       <img id="mortar" src="mortar.png" />) and target (
       <img id="target" src="target.png" />).
       <br/> Double-click to set target.
-      <br/> Mortar range - 1250m, rockets - 850m.
-      <br/> FOB red line - 75m capture range.
     </div>
   </div>
   <div id="dbg"></div>
@@ -103,9 +99,9 @@
   <canvas id="canvas" width="680" height="580"></canvas>
   <img id="map" src="fob.png" style="display:none" />
 
-  <script src="calc.js?r=2"></script>
-  <script src="impl.js?r=2"></script>
-  <script src="main.js?r=2"></script>
+  <script src="calc.js?r=3"></script>
+  <script src="impl.js?r=3"></script>
+  <script src="main.js?r=3"></script>
   <script src="tests.js"></script>
 
   <!-- Yandex.Metrika counter -->
